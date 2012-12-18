@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/mathlib/numstr.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.7
- | File mod date:    2007-01-28 09:37:58
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  mathlib
  |
  `------------------------------------------------------------------------|#
@@ -21,31 +21,8 @@
 				string->long-int
 				string->bignum
 				string->rational
-				string->rational*
 				string->float
 				string->complex)))
-
-;;;
-;;;  Handle rational input notation even if we don't
-;;;  support exact rationals...
-;;;
-
-(define (string->rational* str radix)
-  ;;
-  (define (string->integer str)
-    (or (string->fixnum str 10)
-        (string->long-int str 10)
-        (string->bignum str 10)))
-  ;;
-  (and (= radix 10)
-       (let ((slash (string-search str #\/)))
-         (and slash
-              (let ((num (string->integer (substring str 0 slash))))
-                (and num
-                     (let ((den (string->integer (substring str (+ slash 1)))))
-                       (and den (/ num den)))))))))
-
-                   
 
 (define (get-radix (rest <list>) default)
   (if (null? rest)

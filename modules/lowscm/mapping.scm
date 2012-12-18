@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/lowscm/mapping.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.11
- | File mod date:    2006-01-28 16:51:48
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  low-scheme
  |
  | Purpose:          Functions to apply other functions over lists

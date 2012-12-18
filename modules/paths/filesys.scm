@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/paths/filesys.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.8
- | File mod date:    1998-02-19 20:58:58
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  paths
  |
  | Purpose:          User-level interface to the file system

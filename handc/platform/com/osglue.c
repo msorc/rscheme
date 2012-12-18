@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    handc/platform/com/osglue.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.40
- * File mod date:    2007-05-30 06:50:15
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  *
  * Purpose:          Low-level OS glue for most systems
  *------------------------------------------------------------------------*
@@ -420,8 +420,6 @@ static obj cis( const char *str, obj rest )
 #define PLATFORM_ARCH_STRING "alpha"
 #elif PLATFORM_ARCH_S390
 #define PLATFORM_ARCH_STRING "s390"
-#elif PLATFORM_ARCH_X86_64
-#define PLATFORM_ARCH_STRING "x86-64"
 #endif
 
 /*****************************************************************
@@ -436,10 +434,6 @@ obj os_type( void )
 {
   char bits[20];
   obj tail = NIL_OBJ;
-
-#if CPP_SUPPORTS_ISYSTEM
-  tail = cis( "cpp-isystem", tail );
-#endif
 
 #ifdef INLINES
   tail = cis( "inlines", tail );
@@ -803,7 +797,7 @@ UINT_16 ntohs(UINT_16 x)
 #endif
 
 #if !HAVE_NTOHL
-UINT_32 ntohl(UINT_32 x)
+UINT_16 ntohl(UINT_32 x)
 {
   return ((x & 0x000000ffU) << 24)
     |    ((x & 0x0000ff00U) <<  8)

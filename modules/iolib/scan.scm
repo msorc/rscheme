@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/iolib/scan.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.36
- | File mod date:    2005-02-21 16:09:14
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  iolib
  |
  | Purpose:          Token scanner -- used by scheme reader

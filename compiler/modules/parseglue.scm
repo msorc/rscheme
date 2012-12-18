@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:	    compiler/modules/parseglue.scm
+ | File:	    %p%
  |
  |          Copyright (C)1998 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |	    See <http://www.rscheme.org/> for the latest info.
  |
- | File version:     1.4
- | File mod date:    1999-01-25 07:47:38
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  (rsc)
  |
  | Purpose:          Parse the flags and arguments for a define-glue

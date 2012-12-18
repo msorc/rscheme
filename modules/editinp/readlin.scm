@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/editinp/readlin.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.6
- | File mod date:    1998-12-09 02:10:38
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  editinp
  |
  | Purpose:          Glue code interfacing to rdln choice (gnu|std)

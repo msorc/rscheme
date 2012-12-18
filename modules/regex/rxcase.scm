@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/regex/rxcase.scm
+ | File:    %p%
  |
  |          Copyright (C) 2003 Joerg F. Wittenberger <joerg.wittenberger@pobox.com>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.3
- | File mod date:    2003-02-22 20:26:05
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  regex
  |
  | Purpose:          Provide nice interface to reg-expr->proc

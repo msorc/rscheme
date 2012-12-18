@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    modules/iolib/stdiox.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.24
- * File mod date:    2006-04-07 10:17:15
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  * Owned by module:  iolib
  *
  * Purpose:          bytecode extensions to provide stdio interface
@@ -82,7 +82,10 @@ UINT_8 *bc_stdio_extension( UINT_8 *pc, RS_bc_datum **args )
       break;
     case 5: /* fwrite/str */
       bot -= 2;
-      n = stdiox_fwrite_str( bot[0].obj_val, bot[1].obj_val );
+      ensure_string_mapped( bot[1].obj_val );
+      n = fwrite( string_text(bot[1].obj_val), 
+		  1, string_length(bot[1].obj_val),
+		  FX_AS_FILE(bot[0].obj_val) );
       bot[0].raw_int_val = n;
       bot++;
       break;
@@ -355,7 +358,6 @@ int stdiox_pclose( obj f )
 
 int stdiox_fwrite_str( obj f, obj str )
 {
-  ensure_string_mapped( str );
   return fwrite( string_text(str), 1, string_length(str), FX_AS_FILE(f) );
 }
 

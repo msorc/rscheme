@@ -19,7 +19,6 @@
 #define PLATFORM_ARCH_M68K    0
 #define PLATFORM_ARCH_ALPHA   0
 #define PLATFORM_ARCH_S390    0
-#define PLATFORM_ARCH_X86_64  0
 #define PLATFORM_ARCH_UNKNOWN 0
  
 /* The GNU C compiler lets you compute "goto" targets. Parts of the
@@ -45,9 +44,6 @@
 #define HAVE_SYS_SOCKET_H 0
 #define HAVE_SYS_SELECT_H 0
 #define HAVE_EXECINFO_H 0
-#define HAVE_VM_VM_PARAM_H 0
-#define HAVE_UVM_UVM_PARAM_H 0
-
 
 /* 
  *  Typedefs and structures... 
@@ -78,7 +74,6 @@
 #define HAVE_NDIR_H 0
 #define HAVE_NTOHL 0
 #define HAVE_NTOHS 0
-#define HAVE_RANDOM 0
 #define HAVE_SETITIMER 0
 #define HAVE_STAT 0
 #define HAVE_STRERROR 0
@@ -87,20 +82,15 @@
 #define HAVE_WAIT 0
 #define HAVE_WAITPID 0
 #define HAVE_ALLOCA 1
-#define HAVE_ROUND 0
-#define HAVE_NEAREST 0
 #define HAVE_BACKTRACE 0
 
 /*
  *   Other variables...
  */
 
-#define CPP_SUPPORTS_ISYSTEM  0         /* does compiler like '-isystem'? */
-
 #define NTOH_PROTO_OK 1
 #define USE_NETINET_FOR_NTOH_PROTO 0
 #define USE_POSIX_SIGNALS 1
-
 
 #define TRACE_SIGNAL_LATENCY 0       /* on w/--enable-trace-signal-latency */
 #define UTF_PROCESS_CODE 0           /* on w/--enable-utf-process-code */
@@ -164,6 +154,12 @@ typedef signed char INT_8;
 
 typedef unsigned int XUINT_32;  /* 32 bits even on alpha */
 
+#if PLATFORM_ARCH_ALPHA
+#define WORD_SIZE_BITS   (64)
+#else
+#define WORD_SIZE_BITS   (32)
+#endif
+
 #if PLATFORM_ARCH_S390
 typedef INT_64   DItype;
 #endif
@@ -176,7 +172,6 @@ typedef INT_64   DItype;
 #define SIZEOF_UNSIGNED_LONG_LONG  (8)
 
 #define WORD_IS_32_BITS  (SIZEOF_UNSIGNED_LONG == 4)
-#define WORD_SIZE_BITS   (SIZEOF_UNSIGNED_LONG*8)
 
 typedef double IEEE_64;
 typedef float IEEE_32;
@@ -212,13 +207,11 @@ extern unsigned short int ntohs( unsigned short int );
 
 #define HOST_TO_BIG_ENDIAN_16(x)      ntohs(x)
 #define HOST_TO_BIG_ENDIAN_32(x)      ntohl(x)
-#define HOST_TO_BIG_ENDIAN_IEEE_32(x) htonf(x)
-#define HOST_TO_BIG_ENDIAN_IEEE_64(x) htond(x)
+#define HOST_TO_BIG_ENDIAN_IEEE_64(x) htonf(x)
 
 #define BIG_ENDIAN_TO_HOST_16(x)      ntohs(x)
 #define BIG_ENDIAN_TO_HOST_32(x)      ntohl(x)
-#define BIG_ENDIAN_TO_HOST_IEEE_32(x) ntohf(x)
-#define BIG_ENDIAN_TO_HOST_IEEE_64(x) ntohd(x)
+#define BIG_ENDIAN_TO_HOST_IEEE_64(x) ntohf(x)
 
 #endif
 

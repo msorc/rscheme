@@ -1,12 +1,12 @@
 #---------------------------------------------------------*-Makefile-*----#
-# File:    handc/runtime/Makefile
+# File:    %p%
 #
 #          Copyright (C)1997 Donovan Kolbly <d.kolbly@rosette.com>
 #          as part of the RScheme project, licensed for free use
 #
-# Version: 1.15
-# Date:    1997-11-19 22:29:52
-# Build:   v0.7.3.4-b7u, 2007-05-30
+# Version: %I%
+# Date:    %E% %U%
+# Build:   %b%
 #
 # Purpose: Makefile for core-most runtime library material
 #-------------------------------------------------------------------------#

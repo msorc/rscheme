@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    handc/cfg/gcadapt/irc/gcclient.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.7
- * File mod date:    2003-10-14 13:29:15
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  *
  * Purpose:          IRC GC adapater (scheme -> adapter -> gc)
  *------------------------------------------------------------------------*/

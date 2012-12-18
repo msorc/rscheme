@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/imageio/refanchor.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.6
- | File mod date:    2007-01-28 10:02:16
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  imageio
  |
  `------------------------------------------------------------------------|#
@@ -45,7 +45,7 @@
 ;; dictionaries used to compress class names and symbol tables
 ;;
 ;; note that using a dictionary for compressing class names
-;; neither obligates the loader to provide the named class, nor
+;; neither obligates thes loader to provide the named class, nor
 ;; alleviates the need to supply the actual class in the classtable
 
 (define-class <symbol-dict> (<object>)

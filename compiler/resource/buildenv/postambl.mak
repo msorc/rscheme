@@ -1,4 +1,4 @@
-##  compiler/resource/buildenv/postambl.mak
+##  %p%
 ##
 ##    [source]/resource/buildenv/postambl.mak
 ##

@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    handc/platform/bsd/dynlink.c
+ * File:    %p%
  *
  *          Contributed by HIROSHI OOTA <oota@POBoxes.com>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest info.
  *
- * File version:     1.3
- * File mod date:    2003-08-20 13:33:25
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  *
  * Purpose:          FreeBSD dynamic linking interface
  *------------------------------------------------------------------------*/

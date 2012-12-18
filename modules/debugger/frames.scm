@@ -23,7 +23,7 @@
           (for-each set-index! r (range (length r)))
           (reverse! r))
         (if (eq? (pc-jump-addr pc) $fin-w-call-pc)
-            (if (or (eq? (gvec-ref pc 4) ds) (null? ds))
+            (if (eq? (gvec-ref pc 4) ds)
                 (loop (pc-continuation-reg pc) ds r)
                 (loop pc 
                       (cdr ds)
@@ -62,7 +62,7 @@
                           (linkage-info (template backstop))))
          (backstop-pc (cadr monotones)))
     (build-frames pc0
-                  dyn-state
+                  (get-dynamic-state-reg)
                   (lambda (pc)
                     (and (eq? (pc-jump-addr pc) backstop-pc)
                          (pair? (pc-reg-ref pc 0))

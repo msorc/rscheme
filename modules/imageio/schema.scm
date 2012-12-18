@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/imageio/schema.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.4
- | File mod date:    2007-01-28 10:02:16
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  imageio
  |
  `------------------------------------------------------------------------|#
@@ -135,15 +135,3 @@
 	     dict
 	     (vector-append (id->symbol-vector dict) x))))
       schema)))
-
-;;; return the inverse mapping table
-
-(define (class-name-table (self <image-schema>))
-  (let ((tbl (make-object-table)))
-    (table-for-each
-     (class-table self)
-     (lambda (h k v)
-       (table-insert! tbl v k)))
-    tbl))
-
-

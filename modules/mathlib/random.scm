@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/mathlib/random.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.10
- | File mod date:    2007-05-30 06:51:57
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  mathlib
  |
  | Purpose:          (random) implementation
@@ -121,11 +121,7 @@
 #if HAVE_ERAND48
   f = erand48( (unsigned short *)PTR_TO_DATAPTR( state ) );
 #else
-#if HAVE_RANDOM
   f = (double)random() / (double)LONG_MAX;
-#else
-  f = (double)rand() / (double)RAND_MAX;
-#endif
 #endif
   REG0 = make_float( f );
   RETURN1();

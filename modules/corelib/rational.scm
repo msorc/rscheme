@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:	    modules/corelib/rational.scm
+ | File:	    %p%
  |
  |          Contributed by HIROSHI OOTA <oota@POBoxes.com>
  |          as part of the RScheme project, licensed for free use.
  |	    See <http://www.rscheme.org/> for the latest info.
  |
- | File version:     1.3
- | File mod date:    1999-01-11 08:19:01
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  corelib
  |
  | Purpose:          rational number handling

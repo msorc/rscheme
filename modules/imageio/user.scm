@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/imageio/user.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.7
- | File mod date:    2007-01-28 10:02:16
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  imageio
  |
  `------------------------------------------------------------------------|#
@@ -21,12 +21,11 @@
 	 (refstr sect0 (optimize-refs (vector-ref sections 0)
 				      (symbol-dict schema)
 				      (class-dict schema)
-				      (ref-proc schema)
-                                      (class-name-table schema)))
+				      (ref-proc schema)))
 	 (info (image->compressed-string
 		(vector sect0
-			(vector-ref sections 1)         ; gvecs
-			(vector-ref sections 2))        ; bvecs
+			(vector-ref sections 1)
+			(vector-ref sections 2))
 		rewrite
 		root))
 	 (result (bvec-alloc <string> (+ 2  ;; 1 for version byte, 1 for NUL

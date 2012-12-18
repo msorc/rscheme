@@ -70,7 +70,6 @@ case "${host}" in
   powerpc-*-*)  ARCH=powerpc ; AC_DEFINE(PLATFORM_ARCH_PPC,1) ;;
   rs6000-*-*)   ARCH=powerpc ; AC_DEFINE(PLATFORM_ARCH_PPC,1) ;;
   i?86-*-*)     ARCH=i386 ; AC_DEFINE(PLATFORM_ARCH_I386,1) ;;
-  x86_64-*-*)   ARCH=x86_64 ; AC_DEFINE(PLATFORM_ARCH_X86_64,1) ;;
   mips-*-*)     ARCH=mips ; AC_DEFINE(PLATFORM_ARCH_MIPS,1) ;;
   sparc-*-*)    ARCH=sparc ; AC_DEFINE(PLATFORM_ARCH_SPARC,1) ;;
   alpha*-*-*)   ARCH=alpha ; AC_DEFINE(PLATFORM_ARCH_ALPHA,1) ;;
@@ -90,8 +89,7 @@ case "${host}" in
   m68k-*-nextstep*) PLATFORM=next ; PLATCAP=NEXT
                  ;;
   *-*-darwin*)   PLATFORM=darwin ; PLATCAP=DARWIN
-                 dl_default=yes
-                 default_pkgs="fasl threads lss rstore"
+                 default_pkgs="fasl"
 	         LDX_FLAGS=""
                  ;;
   *-*-rhapsody*) PLATFORM=rhapsody ; PLATCAP=RHAPSODY
@@ -104,6 +102,10 @@ case "${host}" in
                  dl_default=yes
                  default_pkgs="fasl threads lss rstore"
 		 ;;
+  *-*-darwin*)   PLATFORM=darwin ; PLATCAP=DARWIN
+                 dl_default=yes
+                 default_pkgs="fasl threads lss"
+                 ;;
   *-*-aix*)      PLATFORM=aix ; PLATCAP=AIX
                  dl_default=yes
                  default_pkgs="fasl threads lss rstore"
@@ -127,23 +129,6 @@ case "${host}" in
                  ;;
 esac
 AC_MSG_RESULT(Found platform: $PLATFORM $PLATCAP)
-
-AC_MSG_CHECKING([for cpp -isystem])
-
-cpp_save="$CPPFLAGS"
-CPPFLAGS="-isystem foo"
-rm -rf foo
-mkdir foo
-echo "int decl;" > foo/barzog.h
-
-AC_PREPROC_IFELSE([#include <barzog.h>],
-[AC_DEFINE(CPP_SUPPORTS_ISYSTEM,1)
- AC_MSG_RESULT([yes])],
-[AC_DEFINE(CPP_SUPPORTS_ISYSTEM,0)
- AC_MSG_RESULT([no])])
-rm -rf foo
-
-CPPFLAGS="$cpp_save"
 
 default_pkgs="general syscalls unixm calendar sets $default_pkgs"
 
@@ -268,7 +253,7 @@ esac
 AC_CONFIG_HEADER(config.h)
 
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS([db3/db_185.h db/db.h db.h unistd.h alloca.h sys/socket.h sys/select.h sys/time.h execinfo.h vm/vm_param.h uvm/uvm_param.h])
+AC_CHECK_HEADERS([db3/db_185.h db/db.h db.h unistd.h alloca.h sys/socket.h sys/select.h sys/time.h execinfo.h])
 
 AC_PATH_PROG(RANLIB, ranlib, :)
 
@@ -290,13 +275,10 @@ AC_CHECK_MEMBER(struct timeval.tv_usec,
 #include <sys/time.h>
 #endif])
 
-AC_CHECK_LIB(m,sin)
-
 AC_CHECK_FUNCS(getcwd getenv gettimeofday getwd \
   memcpy memmove ntohl ntohs setitimer strerror \
   stat mkdir chdir wait waitpid flock lockf getrusage usleep symlink \
-  fgetln round nearest random erand48 backtrace)
-
+  fgetln alloca erand48 backtrace)
 
 dnl Check if the compiler supports computed gotos
 AC_CACHE_CHECK(if computed goto works, rs_cv_computed_goto_works,
@@ -518,7 +500,7 @@ fi
 
 cat > preamble.mak <<EOF
 # This is the preamble.mak used when building the base system
-IFLAGS=-I. -I../install/include
+IFLAGS=-I- -I. -I../install/include
 CFLAGS=\$(CFLAGS1) \$(IFLAGS)
 LD=$LD
 LD_FLAGS=-r
@@ -587,7 +569,7 @@ _mkdir install/resource/buildenv
 cat > install/resource/buildenv/preamble.mak <<EOF
 # This is the preamble.mak used when building packages and other addons
 # INSTALL_DIR=$INSTALL_DIR
-IFLAGS=\$(USR_IFLAGS) -I. \$(SYS_IFLAGS) -I\$(INSTALL_DIR)/include
+IFLAGS=\$(USR_IFLAGS) -I. -I- \$(SYS_IFLAGS) -I\$(INSTALL_DIR)/include
 SUBPROJ_LD=$LD
 SUBPROJ_LD_FLAGS=-r
 LDX_FLAGS=-L\$(INSTALL_DIR)/lib -lrs $LDX_FLAGS
@@ -756,12 +738,11 @@ then CFLAGS="$CFLAGS -Wall -Wno-unused"
      if $ASSERTIONS
      then echo "#define USE_CONSTRUCTOR_EXPRS" >> $CONFIG_H
      fi
+     echo "#define _rs_volatile volatile" >> $CONFIG_H
      echo "#define _rs_inline inline" >> $CONFIG_H
-     echo "#define _rs_volatile __attribute__((noreturn))" >> $CONFIG_H
-else echo "#define _rs_inline /* empty */" >> $CONFIG_H
-     echo "#define _rs_volatile /* empty */" >> $CONFIG_H
+else echo "#define _rs_volatile /* empty */" >> $CONFIG_H
+     echo "#define _rs_inline /* empty */" >> $CONFIG_H
 fi
-
 
 if $FAKE_TIME_THREADS
 then echo "#define TIMER_IS_MONOTONE_COUNTER" >> $CONFIG_H

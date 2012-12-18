@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:	    modules/hacks/debugapi.scm
+ | File:	    %p%
  |
  |          Copyright (C)1998 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |	    See <http://www.rscheme.org/> for the latest info.
  |
- | File version:     1.1
- | File mod date:    1999-01-08 13:25:58
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  &module;
  |
  | Purpose:          Collect together accessors for debugging info

@@ -1,12 +1,12 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/iolib/readapp.scm
+ | File:    %p%
  |
  |          Copyright (C) 2003 Donovan Kolbly <donovan@rscheme.org>
  |          as part of the RScheme project, licensed for free use
  |
- | Version: 1.1
- | Date:    2003-11-05 20:31:15
- | Build:   v0.7.3.4-b7u, 2007-05-30
+ | Version: %I%
+ | Date:    %E% %U%
+ | Build:   %b%
  |
  | Purpose: Provide primary functionality to support read-time application
  |          as described in SRFI-10

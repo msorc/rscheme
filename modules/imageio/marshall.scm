@@ -1,45 +1,32 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/imageio/marshall.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.7
- | File mod date:    2007-01-28 10:02:09
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  imageio
  |
  `------------------------------------------------------------------------|#
 
-(define (assign-ids sections rplc)
-  (let ((idt (make-object-table)))
-    (let ((i 0))
-      (vector-for-each
-       (lambda (v)
-         (vector-for-each
-          (lambda (v)
-            (table-insert! idt v i)
-            (set! i (+ i 1)))
-          v))
-       sections)
-      ;;
-      ;;  If object A is being replaced by B
-      ;;  (i.e., A-->B appears in the rplc mapping)
-      ;;  then give A the same id that B has
-      ;;
-      (if rplc
-          (table-for-each
-           rplc
-           (lambda (h k v)
-             (let ((j (table-lookup idt v)))
-               (if j
-                   (table-insert! idt k j))))))
-      ;;
-      (values idt i))))
+(define (assign-ids sections)
+    (let ((idt (make-object-table)))
+	(let ((i 0))
+	    (vector-for-each
+		(lambda (v)
+		    (vector-for-each
+			(lambda (v)
+			    (table-insert! idt v i)
+			    (set! i (+ i 1)))
+			v))
+		sections)
+	    (values idt i))))
 
-(define (image->string img rws root #optional rplc)
-    (let* ((info (render-marshalling img (assign-ids img rplc) rws root))
+(define (image->string img rws root)
+    (let* ((info (render-marshalling img (assign-ids img) rws root))
      	   (len (vector-ref info 0))
     	   (buffers (vector-ref info 1))
 	   (errors (vector-ref info 2)))
@@ -51,21 +38,12 @@
 
 ;;  info[2] is a list of illegal refs
 ;;
-(define (image->compressed-string img rws root #optional rplc)
-  ;;
-  ;; `rws' is an <object-table> mapping instances
-  ;; to a list of slots that are to be rewritten.
-  ;;
-  ;; This allows a slot whose current value is an immob
-  ;; to be rewritten on output, or when multiple slots
-  ;; point to the same value they can be split to point
-  ;; to different objects.
-
-  (let ((info (render-marshalling img (assign-ids img rplc) rws root)))
-    (if (null? (vector-ref info 2))
-        (compress (vector-ref info 1))
-        (error "image->compressed-string: refs remain: ~s"
-               (vector-ref info 2)))))
+(define (image->compressed-string img rws root)
+    (let ((info (render-marshalling img (assign-ids img) rws root)))
+	(if (null? (vector-ref info 2))
+	    (compress (vector-ref info 1))
+	    (error "image->compressed-string: refs remain: ~s"
+		   (vector-ref info 2)))))
 
 (define (decompress str)
     (let ((info (uncompress str)))
@@ -75,29 +53,22 @@
 
 (define *anchor-table* #f)
 
-(define (pickle item #optional rplc)
+(define (pickle item)
   (let ((tbl (make-object-table))
 	(rws (make-object-table))
-	(sections (vector '() '() '() (or rplc (make-object-table)))))
+	(sections (make-vector 3 '())))
     (fluid-let ((*anchor-table* (make-table eq? integer->hash)))
       (pickle* item tbl rws sections))
-    (values (vector (list->vector (vector-ref sections 0))
-                    (list->vector (vector-ref sections 1))
-                    (list->vector (vector-ref sections 2)))
+    (values (vector-map list->vector sections)
 	    rws)))
 
 (define (pickle* item tbl rws sections)
-  (cond
-   ((table-lookup tbl item)
-    ;; it's been handled already
-    (values))
-   ((table-lookup (vector-ref sections 3) item)
-    => (lambda (alt)
-         (pickle* alt tbl rws sections)))
-   ((ptr? item)
-    (table-insert! tbl item #t)
-    ;;(format #t "pickle* ~r ~#*30s (~s)\n" item item pickler)
-    ((pickler item) item tbl rws sections))))
+    (or (table-lookup tbl item)
+	(not (ptr? item))
+	(begin
+	    (table-insert! tbl item #t)
+	    ;(format #t "pickle* ~r ~#*30s (~s)\n" item item pickler)
+	    ((pickler item) item tbl rws sections))))
 
 (define (pickle/ref item tbl rws sections)
     (vector-set! sections 

@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:	    modules/highscm/hooks.scm
+ | File:	    %p%
  |
  |          Copyright (C)1998 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |	    See <http://www.rscheme.org/> for the latest info.
  |
- | File version:     1.2
- | File mod date:    2000-11-04 20:25:41
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  highscm
  |
  | Purpose:          Provide generic support for sequences of hook thunks

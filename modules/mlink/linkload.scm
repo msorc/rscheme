@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/mlink/linkload.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.17
- | File mod date:    2006-10-01 11:30:27
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  mlink
  |
  | Purpose:          load and bind modules
@@ -72,18 +72,12 @@
 					(name <symbol>)
 					(tle <top-level-contour>))
   (if (instance? new-bdg <top-level-var>)
-      (if (write-prot self)
-          (if (not (eq? (value self) (value new-bdg)))
-              (begin
-                (format #t "warning: TLV ~s already bound (rebinding to new one)\n" 
-                        name)
-                (table-insert! (table tle) name new-bdg)))
-          (begin
-            (if (not (or (eq? (value self) '#unbound)
-                         (eq? (value self) (value new-bdg))))
-                (format #t "warning: TLV ~s already bound to ~s\n" 
-                        name (value self)))
-            (set-value! self (value new-bdg))))
+      (begin
+	(if (not (or (eq? (value self) '#unbound)
+		     (eq? (value self) (value new-bdg))))
+	    (format #t "warning: TLV ~s already bound to ~s\n" 
+		    name (value self)))
+	(set-value! self (value new-bdg)))
       (begin
 	(if (not (eq? self new-bdg))
 	    (format #t "warning: ~s already bound to ~s = ~s\n" 

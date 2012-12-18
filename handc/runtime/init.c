@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    handc/runtime/init.c
+ * File:    %p%
  *
  *          Copyright (C)1997,1998 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.22
- * File mod date:    2003-06-09 22:17:14
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  *
  * Purpose:          RScheme initialization code
  *------------------------------------------------------------------------*/

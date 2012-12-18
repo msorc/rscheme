@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    handc/runtime/vinsns.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.17
- * File mod date:    2007-02-01 13:34:50
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  *
  * Purpose:          Implementation of virtual instruction set
  *------------------------------------------------------------------------*
@@ -149,7 +149,7 @@ static void rs_vmd_envts( FILE *f, int pass, obj envt )
     rs_vmd_prn( f, pass, tmp, gvec_ref( envt, SLOT(0) ) );
     
     for (k=SLOT(1); k<SIZEOF_PTR( envt ); k+=SLOT(1)) {
-      sprintf( tmp, "%u.%u", i, (unsigned)(k / SLOT(1)) );
+      sprintf( tmp, "%u.%u", i, k / SLOT(1) );
       rs_vmd_prn( f, pass, tmp, gvec_ref( envt, k ) );
     }
     envt = gvec_ref( envt, SLOT(0) );

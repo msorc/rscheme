@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:	    modules/compiler/srfi0.scm
+ | File:	    %p%
  |
  |          Copyright (C)1999 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |	    See <http://www.rscheme.org/> for the latest info.
  |
- | File version:     1.11
- | File mod date:    2007-01-28 11:52:37
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  mlink
  |
  | Purpose:          implement SRFI-0
@@ -74,10 +74,6 @@
     (list->vector (map (lambda (s)
 			 (symbol-append "os." s))
 		       (os-type))))))
-
-(define (remove-globally-implemented! (fid <symbol>))
-  (set! *globally-implemented* (vdelq fid *globally-implemented*))
-  (values))
 
 (define (add-globally-implemented! (fid <symbol>))
   (set! *globally-implemented* 

@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    modules/regex/runmatch.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.9
- * File mod date:    2007-02-01 13:37:26
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  * Owned by module:  regex
  *
  * Purpose:          regex interpreter engine
@@ -130,11 +130,9 @@ UINT_8 *run_match( UINT_8 *str, UINT_32 pc )
           {
             UINT_8 reg = machine[pc++];
             bound[reg].count++;
-            /*
             printf( "-- [%02u] inc r%u [%u,%u] now %u\n",
                     pc-2, reg, bound[reg].min, bound[reg].max,
                     bound[reg].count );
-            */
             break;
           }
 
@@ -150,39 +148,29 @@ UINT_8 *run_match( UINT_8 *str, UINT_32 pc )
 	    pc += 2;
 
             save = bound[reg].count;
-            /*
             printf( "-- [%02u] <%p> boundloop r%u (count %u, [%u,%u])\n", 
                     pcsave, &subr, reg, save, bound[reg].min, bound[reg].max );
-            */
+
             if (save < bound[reg].max) {
               result = run_match( str, subr );
               if (result) {
-                /*
-                  printf( "-- [%02u] <%p> boundloop run_match OK\n",
+                printf( "-- [%02u] <%p> boundloop run_match OK\n",
                         pcsave, &subr );
-                */
                 return result;
               }
-              /*printf( "-- [%02u] <%p> boundloop run_match failed (fix n=%u)\n",
+              printf( "-- [%02u] <%p> boundloop run_match failed (fix n=%u)\n",
                       pcsave, &subr, save );
-              */
               bound[reg].count = save;
               if (save < bound[reg].min) {
-                /*
-                  printf( "-- [%02u] <%p> boundloop total failure w/%u\n",
+                printf( "-- [%02u] <%p> boundloop total failure w/%u\n",
                         pcsave, &subr, save );
-                */
                 FAILED;
               }
-              /*
               printf( "-- [%02u] <%p> boundloop continue w/%u (no match)\n",
                       pcsave, &subr, save );
-              */
             } else {
-              /*
-                printf( "-- [%02u] <%p> boundloop continue w/%u (hit max)\n",
+              printf( "-- [%02u] <%p> boundloop continue w/%u (hit max)\n",
                       pcsave, &subr, save );
-              */
             }
             break;
           }
@@ -196,10 +184,8 @@ UINT_8 *run_match( UINT_8 *str, UINT_32 pc )
             bound[reg].min = (machine[pc] << 8) + machine[pc+1];
             bound[reg].max = (machine[pc+2] << 8) + machine[pc+3];
             pc += 4;
-            /*
             printf( "-- [%02u] setbound r%u [%u,%u]\n",
                     pcsave, reg, bound[reg].min, bound[reg].max );
-            */
             break;
           }
 

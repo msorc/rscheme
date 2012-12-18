@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/start/present.scm
+ | File:    %p%
  |
  |          Copyright (C)1997-2005 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.9
- | File mod date:    2005-02-24 16:22:11
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  start
  |
  | Purpose:          Presentation banners
@@ -16,7 +16,7 @@
 (define *program* "RScheme")
 
 ;; `*version*' is really filled in at link time
-(define *version* "RScheme (v0.7.3.4-b7u, 2007-05-30)")
+(define *version* "RScheme (%b%)")
 
 (define *license* "\nCopyright (C) 1995-2005 Donovan Kolbly <d.kolbly@rscheme.org>\nRScheme comes with ABSOLUTELY NO WARRANTY.\n")
 

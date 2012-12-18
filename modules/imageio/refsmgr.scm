@@ -1,13 +1,13 @@
 #|------------------------------------------------------------*-Scheme-*--|
- | File:    modules/imageio/refsmgr.scm
+ | File:    %p%
  |
  |          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  |          as part of the RScheme project, licensed for free use.
  |          See <http://www.rscheme.org/> for the latest information.
  |
- | File version:     1.7
- | File mod date:    2007-01-28 10:02:16
- | System build:     v0.7.3.4-b7u, 2007-05-30
+ | File version:     %I%
+ | File mod date:    %E% %U%
+ | System build:     %b%
  | Owned by module:  imageio
  |
  | Purpose:          manage references
@@ -59,7 +59,7 @@
     (string-copy-rec! s 0 str-or-list)
     s))
 
-(define (optimize-refs ref-vec symbol-dict class-dict make-other-refs inv)
+(define (optimize-refs ref-vec symbol-dict class-dict make-other-refs)
   (let ((fn-descrs '())
 	(classes '())
 	(symbols '())
@@ -91,7 +91,7 @@
     ;;  construct the parts
     ;;
     (bind ((code-ptr-refstr code-ptr-order (make-code-ptr-refs fn-descrs))
-	   (class-refstr class-order (make-class-refs classes class-dict inv))
+	   (class-refstr class-order (make-class-refs classes class-dict))
 	   (symbol-refstr symbol-order (make-symbol-refs symbols symbol-dict))
 	   (other-refstr other-order (make-other-refs other))
 	   (all-order (list->vector (append code-ptr-order 
@@ -324,12 +324,8 @@
 (define (make-symbol-refs symbols symbol-dict)
   (split-on-dict symbol-dict symbols symbols #\S #\s))
 
-(define (make-class-refs classes class-dict inv)
-  (split-on-dict class-dict (map (lambda (c)
-                                   (or (table-lookup inv c)
-                                       (name c)))
-                                 classes) 
-                 classes #\C #\c))
+(define (make-class-refs classes class-dict)
+  (split-on-dict class-dict (map name classes) classes #\C #\c))
 
 (define (split-on-dict dict symbols data class-for-in class-for-not-in)
   (if (null? symbols)

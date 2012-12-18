@@ -1,13 +1,13 @@
 /*-----------------------------------------------------------------*-C-*---
- * File:    modules/iolib/op_str.c
+ * File:    %p%
  *
  *          Copyright (C)1997 Donovan Kolbly <d.kolbly@rscheme.org>
  *          as part of the RScheme project, licensed for free use.
  *          See <http://www.rscheme.org/> for the latest information.
  *
- * File version:     1.8
- * File mod date:    2003-03-03 01:20:25
- * System build:     v0.7.3.4-b7u, 2007-05-30
+ * File version:     %I%
+ * File mod date:    %E% %U%
+ * System build:     %b%
  * Owned by module:  iolib
  *
  * Purpose:          <string-output-port> low-level implementation
