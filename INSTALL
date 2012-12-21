@@ -2,7 +2,7 @@ INSTALL
 
 RScheme Install Notes
 
-RScheme 0.7.3.2
+RScheme 0.7.3.5
 ===============
 
 Building The Basic System
@@ -132,6 +132,7 @@ least gets most of the way :-))
 For another example, Mac OS X wants:
 
     % make CONFIG_OPTS="--host=ppc-rhapsody" stage1
+
 
 -- Donovan Kolbly                       RScheme Development Group
      			                d.kolbly@rscheme.org

@@ -4,11 +4,11 @@
 |  _ < ___) | (__| | | |  __/ | | | | |  __/ | |_| | / /  
 |_| \_\____/ \___|_| |_|\___|_| |_| |_|\___|  \___(_)_/   
                                                           
-================ RScheme (release 0.7.3.3) =================
+================ RScheme (release 0.7.3.5) =================
 
 README
 
-This is the README file for RScheme release 0.7.3.3.
+This is the README file for RScheme release 0.7.3.5
 
 What is RScheme?
 
@@ -127,10 +127,16 @@ RScheme has a lot of useful features:
      and the header file longlong.h from the gmp sources.
 
 Where to get RScheme
- 
-If you have found this file on a web server, in a net announcement, or
-whatever, and you want RScheme, you can ftp it from ftp.rscheme.org as
-pub/rscheme/rs-0.7.3.3.tar.gz.
+
+This version of RScheme is being hosted on github, so can the
+sources can be obtained from:
+
+        https://github.com/dkolbly/rscheme
+
+and a stage1-compiled tarball is generally available from
+
+        http://www.rscheme.org/
+
 
 What's in the Distribution
 
@@ -138,7 +144,7 @@ If you have ftp'd and untar'd the distribution, you probably found
 this file at the top level.  Also at this level are several subdirectories,
 described below.
 
-  README  This file---the one you're reading.
+  README  This file -- the one you're reading.
 
   INSTALL How to configure, compile, and install RScheme
 
