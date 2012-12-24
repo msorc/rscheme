@@ -351,7 +351,7 @@
        (let ((h (parse-request-header c tx)))
          (if h
              (if (websocket-protocol-upgrade? h)
-                 (websocket-connection-loop c space h)
+                 (websocket-connection-upgrade c space h)
                  (let* ((req (make <http-request>
                                web-space: space
                                client: c

@@ -16,7 +16,9 @@
            util.xml
            rs.db.rstore
            rs.util.realm
-           rs.util.logfile))
+           rs.util.logfile
+           rs.net.sha1
+           rs.net.base64))
   ;;
   (define-message-table rs.net.httpd 542)
   ;;

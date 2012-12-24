@@ -8,28 +8,82 @@
 
 ;;; process a websocket
 
-(define (websocket-connection-loop c space h)
-  (let* ((key (cdr (assq 'sec-websocket-key h)))
-         ;(protocol (cdr (assq 'sec-websocket-protocol h)))
-         (version (cdr (assq 'sec-websocket-version h)))
-         (p (open-input-process (~ "websocket-accept ~a" key)))
-         (ack (read-line (open-input-process (~ "websocket-accept ~a" key))))
-         (sock (underlying-http-socket c))
-         (inp (input-port sock))
-         (out (output-port sock)))
-    ;;
-    (write-string out "HTTP/1.1 101 Switching Protocols\r\n")
-    (write-string out "Upgrade: websocket\r\n")
-    (write-string out "Connection: Upgrade\r\n")
-    (write-string out "Sec-WebSocket-Accept: ")
-    (write-string out ack)
-    (write-string out "\r\n")
-    ;(write-string out "Sec-WebSocket-Protocol: ")
-    ;(write-string out protocol)
-    (write-string out "\r\n")
-    (flush-output-port out)
-    ;;
+(define-class <websocket-connection> (<object>)
+  (properties   type: <vector>          init-value: '#())
+  (space type: <web-space>)
+  (origin type: <http-connection>)
+  headers
+  input-port
+  output-port)
+
+;; I can't seem to find one of these already...
+
+(define (assoc-list->vector alist)
+  (let (((v <vector>) (make-vector (* 2 (length alist)))))
+    (let loop ((i 0)
+               (l alist))
+      (if (pair? l)
+          (begin
+            (vector-set! v i (caar l))
+            (vector-set! v (add1 i) (cdar l))
+            (loop (+ i 2) (cdr l)))
+          (if (= i (vector-length v))
+              v
+              (error "malformed assoc-list"))))))
+
+(define (websocket-connection-upgrade c space h)
+  (let* ((version (string->number (cdr (assq 'sec-websocket-version h)))))
+    ;; we only support version 13
+    (if (not (= version 13))
+        (httpd-bail 500 "Unsupported WebSocket version"))
+    (let ((key (cdr (assq 'sec-websocket-key h)))
+          (protocol (assq 'sec-websocket-protocol h))
+          (ws-server (get-property space 'websocket-server #f)))
+      (if (not ws-server)
+          (httpd-bail 500 "WebSocket not supported in this space"))
+      ;; the server hook should return #f or an alist of properties
+      (let ((props (ws-server h)))
+        (if (not props)
+            (httpd-bail 500 "Not willing to accept connection"))
+        ;; generate the response
+        (let* ((ack (string->base64
+                     (sha1-binary-digest
+                      (string-append key *WEBSOCKET-MAGIC*))))
+               (sock (underlying-http-socket c))
+               (cnx (make <websocket-connection>
+                      properties: (assoc-list->vector props)
+                      origin: c
+                      space: space
+                      headers: h
+                      input-port: (input-port sock)
+                      output-port: (output-port sock))))
+          ;;
+          (write-string (output-port cnx)
+                        (string-append
+                         "HTTP/1.1 101 Switching Protocols\r\n"
+                         "Upgrade: websocket\r\n"
+                         "Connection: Upgrade\r\n"
+                         "Sec-WebSocket-Accept: "
+                         ack
+                         "\r\n"
+                         (if (get-property cnx 'protocol #f)
+                             (string-append "Sec-WebSocket-Protocol: "
+                                            (get-property cnx 'protocol)
+                                            "\r\n")
+                             "")
+                         "\r\n"))
+          (flush-output-port (output-port cnx))
+          ;;
+          (websocket-connection-loop cnx))))))
+
+
+(define *WEBSOCKET-MAGIC* "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+        
+  
+(define (websocket-connection-loop (cnx <websocket-connection>))
+  (let ((inp (input-port cnx)))
     (let loop ((j 0))
+      (format #t "Waiting for ~d\n" j)
       (let ((header (read-string inp 2)))
         (format #t "==> ~s\n" header)
         (if (not (eof-object? header))
@@ -57,17 +111,18 @@
                 (format #t "MASK DATA=~s\n" mask)
                 (let ((data (unmask-payload buf 4 payload-length mask)))
                   (format #t "UNMASKED DATA=~s\n" data)
-                  (websocket-send out (~ "Hi Lane ~d!" j))
+                  (websocket-send cnx (~ "Hi Lane ~d!" j))
                   (loop (+ j 1))))))))))
 
 
-(define (websocket-send out buf)
+(define (websocket-send (cnx <websocket-connection>) buf)
   (let ((hdr (bvec-alloc <string> 3)))
     (bvec-set! hdr 0 #x81)
     (bvec-set! hdr 1 (string-length buf))
-    (write-string out hdr)
-    (write-string out buf)
-    (flush-output-port out)))
+    (let ((out (output-port cnx)))
+      (write-string out hdr)
+      (write-string out buf)
+      (flush-output-port out))))
 
 
 (define (unmask-payload (buf <string>) (offset <fixnum>) len (mask <string>))
