@@ -350,18 +350,20 @@
      (let loop ((i 1))
        (let ((h (parse-request-header c tx)))
          (if h
-             (let* ((req (make <http-request>
+             (if (websocket-protocol-upgrade? h)
+                 (websocket-connection-loop c space h)
+                 (let* ((req (make <http-request>
                                web-space: space
                                client: c
                                request-number: i
                                properties: h))
-                    (rsp (compute-http-response req)))
-               (flush-http-response rsp)   ; make sure response has been sent
-               (note 602 "Request took ~a" (time-time (time) (car tx)))
-               (if (keep-alive? rsp)
-                   (loop (+ i 1))
-                   i))
-             (- i 1)))))
+                        (rsp (compute-http-response req)))
+                   (flush-http-response rsp) ; make sure response has been sent
+                   (note 602 "Request took ~a" (time-time (time) (car tx)))
+                   (if (keep-alive? rsp)
+                       (loop (+ i 1))
+                       i))))
+         (- i 1))))
    ((<httpd-bail> condition: e)
     (bailout-response e c space)
     #f)))

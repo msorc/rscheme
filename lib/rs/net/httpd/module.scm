@@ -29,6 +29,7 @@
    (load "xslt.scm")
    (load "basicauth.scm")               ; bonus feature
    (load "cookiesession.scm")           ; bonus feature
+   (load "websocket.scm")
    ;;
    (export make-web-space
            import-webspace
