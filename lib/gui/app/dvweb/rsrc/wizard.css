@@ -1,0 +1,10 @@
+
+span.active {
+  color: red;
+  font-style: normal;
+}
+
+span.inactive {
+  color: grey;
+  font-style: italic;
+}
