@@ -1,6 +1,7 @@
 ,(use rs.sys.threads.manager 
       rs.net.httpd
-      rs.net.console)
+      rs.net.console
+      rs.net.json)
 
 #|
 (define *config*
@@ -34,8 +35,15 @@
   headers)
 
 (define-method process-message ((self <client-connection>) ws msg)
-  (format #t "message => ~s\n" msg)
-  (write-string ws "Merry Christmas!"))
+  (let ((msg (payload msg)))
+    (format #t "message => ~s\n" msg)
+    (if (and (> (string-length msg) 0)
+             (char=? (string-ref msg 0) #\{))
+        (let ((j (read-json (open-input-string msg)))
+              (tmp (open-output-string)))
+          (write-json '((response . "Merry Christmas :-)")) tmp)
+          (write-string ws (close-output-port tmp)))
+        (write-string ws "Merry Christmas!"))))
 
 (define (dvweb-accept h)
   (format #t "dvweb ==> ~s\n" h)
@@ -74,6 +82,9 @@
 
 (uri-link-add! *resources* "frontend.js"
                (make-uri-disk-node "rsrc/frontend.js"
+                                   mime-type: "application/javascript"))
+(uri-link-add! *resources* "websocket.js"
+               (make-uri-disk-node "rsrc/websocket.js"
                                    mime-type: "application/javascript"))
 (uri-link-add! *resources* "wizard.css"
                (make-uri-disk-node "rsrc/wizard.css"
