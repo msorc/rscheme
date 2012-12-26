@@ -9,7 +9,7 @@
 ;;; process a websocket
 
 (define-class <websocket-close> (<condition>))
-  
+
 (define-class <websocket-connection> (<object>)
   (properties   type: <vector>          init-value: '#())
   (space type: <web-space>)
@@ -19,6 +19,13 @@
   output-port
   (reassembly-opcode init-value: #f)
   (reassembly-buffer init-value: '()))
+
+(define-method write-string ((self <websocket-connection>) msg)
+  (websocket-send/text self msg))
+
+(define-class <websocket-message> (<object>)
+  opcode
+  payload)
 
 ;; I can't seem to find one of these already...
 
@@ -129,7 +136,11 @@
      (signal (make <websocket-close>)))))
 
 (define (websocket-process-data cnx op msg)
-  (websocket-send/text cnx "Hi Lane :-)"))
+  (let ((f (get-property cnx 'message-receiver)))
+    (if f
+        (f cnx (make <websocket-message>
+                 opcode: op
+                 payload: msg)))))
 
 (define (websocket-read-payload-length inp b1)
   (let* ((l0 (bitwise-and b1 #x7F)))
