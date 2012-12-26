@@ -104,6 +104,10 @@
            set-static-max-age!
            start-http-server
            handle-http-socket-connection)
+   ;; websocket objects
+   (export <websocket-message>
+           opcode
+           payload)
    ;;
    ;;  should these be exported...?
    ;;
