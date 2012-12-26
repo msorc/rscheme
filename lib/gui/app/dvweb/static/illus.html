@@ -4,9 +4,9 @@
     <script src="/rsrc/3p/jquery.js" type="text/javascript"></script>
     <script src="/rsrc/3p/jquery.svg.js" type="text/javascript"></script>
     <script src="/rsrc/3p/jquery.treeview.js" type="text/javascript"></script>
+    <script src="/rsrc/websocket.js" type="text/javascript"></script>
     <script src="/rsrc/frontend.js" type="text/javascript"></script>
     <script src="/rsrc/wizard.js" type="text/javascript"></script>
-    <script src="/rsrc/websocket.js" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="/rsrc/wizard.css" />
     <link rel="stylesheet" type="text/css" href="/rsrc/3p/jquery.treeview.css" />
   </head>
@@ -14,10 +14,11 @@
   <h1>Illustration</h1>
   <p>Hello</p>
 
-  Prompt: <span id="wizardPrompt">xxx</span>
+  <p>Running: <span id="wizardName">--</span></p>
+  <p>Prompt: <span id="wizardPrompt">--</span></p>
 
 <ul id="nav" class="filetree">
-           <li><a onclick="runScript('place.box');">Place Box</a></li>
+           <li><a onclick="runScript('place-box');">Place Box</a></li>
            <li>Place Oval</li>
         </ul>
 

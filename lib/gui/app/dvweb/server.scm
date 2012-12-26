@@ -1,7 +1,9 @@
 ,(use rs.sys.threads.manager 
       rs.net.httpd
       rs.net.console
-      rs.net.json)
+      rs.net.json
+      tables
+      graphics.geometry)
 
 #|
 (define *config*
@@ -32,23 +34,46 @@
 ;; TODO, we should have a way of binding into the URI tree
 
 (define-class <client-connection> (<object>)
-  headers)
+  headers
+  websocket
+  (interactions init-value: '()))
+
+(define (send-message-to-front-end (self <client-connection>) json)
+  (let ((tmp (open-output-string)))
+    (format #t "sending to front end: ~s\n" json)
+    (write-json json tmp)
+    (write-string (websocket self) (close-output-port tmp))))
+  
+(define (execute-message-from-front-end (self <client-connection>) json)
+  (format #t "execute ~s\n" json)
+  (case (string->symbol (cdr (assq 'action json)))
+    ;;  invoke a command
+    ((invoke-command)
+     (let ((cmd-name (cdr (assq 'name json))))
+       (format #t "Running command: ~s" cmd-name)
+       (run-interactive cmd-name place-box/interaction)))
+    ;; a response to a prompt
+    ((prompt-response)
+     (handle-prompt-response json))))
+
+(define-thread-var *frontend* #f)
 
 (define-method process-message ((self <client-connection>) ws msg)
   (let ((msg (payload msg)))
+    (set-websocket! self ws)
     (format #t "message => ~s\n" msg)
     (if (and (> (string-length msg) 0)
              (char=? (string-ref msg 0) #\{))
-        (let ((j (read-json (open-input-string msg)))
-              (tmp (open-output-string)))
-          (write-json '((response . "Merry Christmas :-)")) tmp)
-          (write-string ws (close-output-port tmp)))
+        (let ((j (read-json (open-input-string msg))))
+          (thread-let ((*frontend* self))
+            (execute-message-from-front-end self j)))
         (write-string ws "Merry Christmas!"))))
 
 (define (dvweb-accept h)
   (format #t "dvweb ==> ~s\n" h)
   (let ((c (make <client-connection>
-             headers: h)))
+             headers: h
+             websocket: #f)))
     (list (cons 'message-receiver (lambda (ws msg)
                                     (process-message c ws msg))))))
 
@@ -92,5 +117,8 @@
 (uri-link-add! *resources* "wizard.js"
                (make-uri-disk-node "rsrc/wizard.js"
                                    mime-type: "application/javascript"))
+
+(load "interaction.scm")
+(load "scripts.scm")
 
 (start-http-server (list (list "dvweb" 8112 *space* 'stdout 'verbose #t)))
