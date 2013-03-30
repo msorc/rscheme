@@ -65,7 +65,7 @@ $(TARGET_DIR):
 	else mkdir $(TARGET_DIR)/tmp ; fi
 
 $(TARGET_DIR)/tmp/buildcfg.scm:
-	RS=$(RS) compiler/mkcfg $(TARGET_DIR) > $(TARGET_DIR)/tmp/buildcfg.scm
+	RS=$(RS) compiler/mkcfg $(TARGET_DIR) $(BUILD_ID) > $(TARGET_DIR)/tmp/buildcfg.scm
 
 $(TARGET_DIR)/tmp/rsc.img: $(TARGET_DIR)/tmp/buildcfg.scm
 	RS=$(RS) compiler/mkrsc \

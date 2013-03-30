@@ -1,12 +1,17 @@
 #!/bin/sh
+#
+#  Build the configuration script that is loaded by the
+#  compiler to get all the configuration settings, including
+#  the version of RScheme being built and the pathnames
 
 dist_path=$1
+build_id="$2"
 dist_path=`cd $dist_path ; pwd`
 
-b="%b%"
-case "$b" in
-  %*) b="$RSCHEME_VERSION, `date +'%Y-%m-%d-%H:%M'`" ;;
-esac
+b="${build_id}"
+if test -z "$b"
+then b="Dev Build, `date +'%Y-%m-%d %H:%M'`"
+fi
 
 # strip off date part and leading "v"
 v=`echo "$b" | sed 's/,.*//' | sed 's/^v//'`
