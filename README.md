@@ -7,10 +7,12 @@
 ================ RScheme (release 0.7.3.5) =================
 
 README
+======
 
 This is the README file for RScheme release 0.7.3.5
 
 What is RScheme?
+----------------
 
 RScheme is an object-oriented, extended version of the Scheme dialect of
 Lisp.  RScheme is freely redistributable, and offers reasonable performance
@@ -30,6 +32,7 @@ code and prints the result.  In reality, every expression you type to
 the read-eval-print-loop is compiled and the resulting code is executed.
 
 Features of RScheme
+-------------------
 
 RScheme has a lot of useful features:
 
@@ -127,6 +130,7 @@ RScheme has a lot of useful features:
      and the header file longlong.h from the gmp sources.
 
 Where to get RScheme
+--------------------
 
 This version of RScheme is being hosted on github, so can the
 sources can be obtained from:
@@ -137,52 +141,70 @@ and a stage1-compiled tarball is generally available from
 
         http://www.rscheme.org/
 
+Dockerized RScheme
+------------------
+
+RScheme is also available as a docker image from
+
+        https://registry.hub.docker.com/u/donovan/rscheme
+
+The version used to bootstrap the process is tagged as
+
+        donovan/rscheme:0.7.3.4-b7
+
+so you can run it as:
+
+        docker run -i -t donovan/rscheme:0.7.3.4-b7 /usr/local/bin/rs
+
 
 What's in the Distribution
+--------------------------
 
 If you have ftp'd and untar'd the distribution, you probably found
 this file at the top level.  Also at this level are several subdirectories,
 described below.
 
-  README  This file -- the one you're reading.
+  README.md - This file -- the one you're reading.
 
-  INSTALL How to configure, compile, and install RScheme
+  INSTALL - How to configure, compile, and install RScheme
 
-  COPYING License for free use
+  COPYING - License for free use
 
-  doc     This holds the documentation of the system.  Included are
-          a user reference (user_ref.ps) and notes on the design
-	  and implementation (design_and_impl.ps).  The documentation
-	  source is not shipped in this distribution.
+  doc - This holds the documentation of the system.  Included are a
+        user reference and notes on the design and implementation.  We
+        currently include the documentation source is not shipped in
+        the distribution, because the toolchain to build the docs is
+        somewhat involved.
 
-  modules This is the source for the compiler and various other modules,
-          in RScheme.  Most of the subdirectories hold the code for some
-          particular module.
+  modules - This is the source for the compiler and various other
+            modules, in RScheme.  Most of the subdirectories hold the
+            code for some particular module.
 
-  handc   This is miscellaneous handwritten C code, mostly runtime support
-          code such as the GC and the low-level parts of the thread
-          system.  This source gets copied into `src/' by the top-level
-	  build process.
+  handc - This is miscellaneous handwritten C code, mostly runtime
+          support code such as the GC and the low-level parts of the
+          thread system.  This source gets copied into `src/' by the
+          top-level build process.
 
-  compiler This contains the "cross" compiler, which is written in the
-	   language implemented by RScheme 0.6, but compiles code for 0.7.
-	   (this is also the off-line module module, rsc, because it works
-	   in 0.7 too)
+  compiler - This contains the "cross" compiler, which is written in
+	     the language implemented by RScheme 0.6, but compiles
+	     code for 0.7.  (this is also the off-line module module,
+	     rsc, because it works in 0.7 too)
 
-  test    This directory holds regression test files
+  test - This directory holds regression test files
 
-  src     The is is the C code generated automatically from RScheme code.
-          The subdirectories correspond to the subdirectories
-          of `modules/', and hold the C code generated from the RScheme code
-          in those directories, plus copies of the subdirectories of `handc/'.
+  src - The is is the C code generated automatically from RScheme
+        code.  The subdirectories correspond to the subdirectories of
+        `modules/', and hold the C code generated from the RScheme
+        code in those directories, plus copies of the subdirectories
+        of `handc/'.
 
-  bytcodes This contains the definitions of the bytecode operations and
-	   hooks for the bytecode compiler to make use of the low-level
-	   type system.
+  bytcodes - This contains the definitions of the bytecode operations
+	     and hooks for the bytecode compiler to make use of the
+	     low-level type system.
 
-  packages This contains the standard, but optional, packages, such as
-	   the persistent store (rstore) and posix interface package
-	   (syscalls).
+  packages - This contains the standard, but optional, packages, such
+	     as the persistent store (rstore) and posix interface
+	     package (syscalls).
 
 
 Goals of the RScheme project
