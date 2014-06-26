@@ -30,7 +30,7 @@ case "$rsv" in
 esac
 
 case "$rsv" in
-  0.7.3*|Dev Build)    rfp=t ;;
+  0.7.3*|Dev*)    rfp=t ;;
   *)         rfp=f ;;
 esac
 
