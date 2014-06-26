@@ -1,8 +1,9 @@
- ____  ____       _                            ___  _____ 
-|  _ \/ ___|  ___| |__   ___ _ __ ___   ___   / _ \|___  |
-| |_) \___ \ / __| '_ \ / _ \ '_ ` _ \ / _ \ | | | |  / / 
-|  _ < ___) | (__| | | |  __/ | | | | |  __/ | |_| | / /  
-|_| \_\____/ \___|_| |_|\___|_| |_| |_|\___|  \___(_)_/   
+>  ____  ____       _                            ___  _____ 
+> |  _ \/ ___|  ___| |__   ___ _ __ ___   ___   / _ \|___  |
+> | |_) \___ \ / __| '_ \ / _ \ '_ ` _ \ / _ \ | | | |  / / 
+> |  _ < ___) | (__| | | |  __/ | | | | |  __/ | |_| | / /  
+> |_| \_\____/ \___|_| |_|\___|_| |_| |_|\___|  \___(_)_/   
+> 
                                                           
 ================ RScheme (release 0.7.3.5) =================
 
@@ -164,47 +165,47 @@ If you have ftp'd and untar'd the distribution, you probably found
 this file at the top level.  Also at this level are several subdirectories,
 described below.
 
-  README.md - This file -- the one you're reading.
+  - *README.md* This file -- the one you're reading.
 
-  INSTALL - How to configure, compile, and install RScheme
+  - *INSTALL* How to configure, compile, and install RScheme
 
-  COPYING - License for free use
+  - *COPYING* License for free use
 
-  doc - This holds the documentation of the system.  Included are a
-        user reference and notes on the design and implementation.  We
-        currently include the documentation source is not shipped in
-        the distribution, because the toolchain to build the docs is
-        somewhat involved.
+  - *doc* This holds the documentation of the system.  Included are a
+          user reference and notes on the design and implementation.
+          We currently include the documentation source is not shipped
+          in the distribution, because the toolchain to build the docs
+          is somewhat involved.
 
-  modules - This is the source for the compiler and various other
-            modules, in RScheme.  Most of the subdirectories hold the
-            code for some particular module.
+  - *modules* This is the source for the compiler and various other
+              modules, in RScheme.  Most of the subdirectories hold
+              the code for some particular module.
 
-  handc - This is miscellaneous handwritten C code, mostly runtime
-          support code such as the GC and the low-level parts of the
-          thread system.  This source gets copied into `src/' by the
-          top-level build process.
+  - *handc* This is miscellaneous handwritten C code, mostly runtime
+            support code such as the GC and the low-level parts of the
+            thread system.  This source gets copied into *src/* by the
+            top-level build process.
 
-  compiler - This contains the "cross" compiler, which is written in
-	     the language implemented by RScheme 0.6, but compiles
-	     code for 0.7.  (this is also the off-line module module,
-	     rsc, because it works in 0.7 too)
+  - *compiler* This contains the "cross" compiler, which is written in
+	       the language implemented by RScheme 0.6, but compiles
+	       code for 0.7.  (this is also the off-line module
+	       module, rsc, because it works in 0.7 too)
 
-  test - This directory holds regression test files
+  - *test* This directory holds regression test files
 
-  src - The is is the C code generated automatically from RScheme
-        code.  The subdirectories correspond to the subdirectories of
-        `modules/', and hold the C code generated from the RScheme
-        code in those directories, plus copies of the subdirectories
-        of `handc/'.
+  - *src* This is the C code generated automatically from RScheme
+          code.  The subdirectories correspond to the subdirectories
+          of *modules/*, and hold the C code generated from the
+          RScheme code in those directories, plus copies of the
+          subdirectories of *handc/*.
 
-  bytcodes - This contains the definitions of the bytecode operations
-	     and hooks for the bytecode compiler to make use of the
-	     low-level type system.
+  - *bytcodes* This contains the definitions of the bytecode
+	       operations and hooks for the bytecode compiler to make
+	       use of the low-level type system.
 
-  packages - This contains the standard, but optional, packages, such
-	     as the persistent store (rstore) and posix interface
-	     package (syscalls).
+  - *packages* This contains the standard, but optional, packages,
+	       such as the persistent store (rstore) and posix
+	       interface package (syscalls).
 
 
 Goals of the RScheme project
@@ -258,6 +259,6 @@ In more detail, our goals are
      platforms.
 
 
--- Donovan Kolbly                       RScheme Development Group
-   			                d.kolbly@rscheme.org
-					http://www.rscheme.org/~donovan/
+> -- Donovan Kolbly                     RScheme Development Group
+>                                       d.kolbly@rscheme.org
+>                                       http://www.rscheme.org/~donovan/
