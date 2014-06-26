@@ -3,9 +3,6 @@
 #include <rscheme/pkgs/lss/lss.h>
 #include <rscheme/pkgs/lss/lsserrno.h>
 
-#undef _rs_volatile
-#define _rs_volatile
-
 struct LSSMethods {
   char *implementation;
   void (*close_meth)( LSS *l );
@@ -52,8 +49,8 @@ struct LSS {
 			      } while (0)
 							  
 
-_rs_volatile void lssi_signal_error( LSS *lss, int code, char *fmt, ... );
-_rs_volatile void lssi_sys_error( LSS *lss, char *fmt, ... );
+void lssi_signal_error( LSS *lss, int code, char *fmt, ... );
+void lssi_sys_error( LSS *lss, char *fmt, ... );
 
 LSS *lssv2_open( const char *file, int fd, int writable, UINT_32 CR_offset );
 LSS *lssv3_open( const char *file, int fd, int writable, int gen );

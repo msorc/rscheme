@@ -97,9 +97,9 @@ obj rs_gf_find_method( obj gf, obj rcvr );
 #define TLREFB(k) gvec_ref( LITERAL(k), SLOT(1) ) /* ref a bound var */
 #define TLSET(k,x) tlv_set_value( LITERAL(k), (x) )
 
-_rs_volatile void failed_type_check( obj place, obj var, obj val, obj expect );
-_rs_volatile void apply_error( obj a_non_function );
-_rs_volatile void done_w_call_scheme( void );
+void failed_type_check( obj place, obj var, obj val, obj expect ) _rs_noreturn;
+void apply_error( obj a_non_function ) _rs_noreturn;
+void done_w_call_scheme( void ) _rs_noreturn;
 
 /************************ Binding Environments ************************/
 
@@ -207,11 +207,11 @@ CIH_DECL obj enclosing_envt( obj envt );
 
 /************************ Argument Checking ************************/
 
-_rs_volatile void wrong_num_args( const char *fn, unsigned num_required );
-_rs_volatile void wrong_num_args_range( const char *fn, 
+void wrong_num_args( const char *fn, unsigned num_required ) _rs_noreturn;
+void wrong_num_args_range( const char *fn, 
 				    unsigned min_rqd,
 				    unsigned max_accepted );
-_rs_volatile void too_few_args( const char *fn, unsigned min_required );
+void too_few_args( const char *fn, unsigned min_required );
 
 #define COUNT_ARGS(num) STMT( if (arg_count_reg != (num)) \
 				wrong_num_args( FUNCTION, num ); )
@@ -219,7 +219,7 @@ _rs_volatile void too_few_args( const char *fn, unsigned min_required );
 #define COUNT_ARGS_AT_LEAST(num) STMT( if (arg_count_reg < (num)) \
 				too_few_args( FUNCTION, num ); )
 
-_rs_volatile void type_check_failed( const char *fn );
+void type_check_failed( const char *fn ) __attribute__((noreturn));
 
 #define assert_type(expr) STMT( if (!(expr)) type_check_failed(FUNCTION); )
 

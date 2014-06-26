@@ -19,7 +19,7 @@
 
 CI_DECL jump_addr apply_tmpl( obj fn, obj tmpl )
 {
-extern _rs_volatile void apply_error( obj );
+extern void apply_error( obj ) _rs_noreturn;
 
 #ifdef RECORD_CALL_CHAIN
 extern void register_apply( obj closure );

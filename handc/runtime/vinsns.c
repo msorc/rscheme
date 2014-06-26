@@ -107,7 +107,7 @@ jump_addr f;
 #undef FPLACE_CODE
 
 
-_rs_volatile void apply_error( obj thing )
+void apply_error( obj thing )
 {
     scheme_error( "Apply to a non-closure: ~s with ~d args",
 		    2, thing, int2fx(arg_count_reg) );
@@ -344,7 +344,7 @@ void restore_cont( unsigned num )
 
 /************************ Argument Checking ************************/
 
-_rs_volatile void wrong_num_args( const char *fn, unsigned num_required )
+void wrong_num_args( const char *fn, unsigned num_required )
 {
     scheme_error( "Function ~a called with ~d args, required exactly ~d",
     		  3,
@@ -353,8 +353,8 @@ _rs_volatile void wrong_num_args( const char *fn, unsigned num_required )
 		  int2fx(num_required) );
 }
 
-_rs_volatile void wrong_num_args_range( const char *fn, 
-				        unsigned mn, unsigned mx )
+void wrong_num_args_range( const char *fn, 
+                           unsigned mn, unsigned mx )
 {
     scheme_error( "Function ~a called with ~d args, expected ~d to ~d",
     		  4,
@@ -365,7 +365,7 @@ _rs_volatile void wrong_num_args_range( const char *fn,
 }
 
 
-_rs_volatile void too_few_args( const char *fn, unsigned min_required )
+void too_few_args( const char *fn, unsigned min_required )
 {
     scheme_error( "Function ~a called with ~d args, required at least ~d",
     		  3,
@@ -477,7 +477,7 @@ unsigned N = 0;
     return N;
 }
 
-_rs_volatile void failed_type_check( obj place, obj var, obj val, obj expect )
+void failed_type_check( obj place, obj var, obj val, obj expect )
 {
     if (!PAIR_P(expect))
 	expect = cons( expect, NIL_OBJ );
@@ -489,7 +489,7 @@ _rs_volatile void failed_type_check( obj place, obj var, obj val, obj expect )
 		  expect );
 }
 
-_rs_volatile void type_check_failed( const char *fn )
+void type_check_failed( const char *fn )
 {
   scheme_error( "type check failed in ~a", 1, make_string(fn) );
 }

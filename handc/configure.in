@@ -746,8 +746,10 @@ then CFLAGS="$CFLAGS -Wall -Wno-unused"
      fi
      echo "#define _rs_volatile volatile" >> $CONFIG_H
      echo "#define _rs_inline inline" >> $CONFIG_H
+     echo "#define _rs_noreturn __attribute__((__noreturn__))" >> $CONFIG_H
 else echo "#define _rs_volatile /* empty */" >> $CONFIG_H
      echo "#define _rs_inline /* empty */" >> $CONFIG_H
+     echo "#define _rs_noreturn /* empty */" >> $CONFIG_H
 fi
 
 if $FAKE_TIME_THREADS
