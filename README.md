@@ -76,7 +76,7 @@ RScheme has a lot of useful features:
      for writing serious programs, especially under UNIX.  It is suitable
      for writing networked servers, for example---that's one of the things
      it was designed for.  RScheme does not currently have as many shell
-     programming features as Olin Shivers' scsh (the Scheme shell), but
+     programming features as Olin Shivers' `scsh` (the Scheme shell), but
      we will add more, and we may port full scsh to RScheme.
 
   5. Separately-compilable and linkable modules.  The module system is
@@ -156,6 +156,7 @@ so you can run it as:
 
         docker run -i -t donovan/rscheme:0.7.3.4-b7 /usr/local/bin/rs
 
+this version is available tagged as `donovan/rscheme:0.7.3.5-b1`
 
 What's in the Distribution
 --------------------------
@@ -164,45 +165,45 @@ If you have ftp'd and untar'd the distribution, you probably found
 this file at the top level.  Also at this level are several subdirectories,
 described below.
 
-  - *README.md* This file -- the one you're reading.
+  - `README.md` This file -- the one you're reading.
 
-  - *INSTALL* How to configure, compile, and install RScheme
+  - `INSTALL` How to configure, compile, and install RScheme
 
-  - *COPYING* License for free use
+  - `COPYING` License for free use
 
-  - *doc* This holds the documentation of the system.  Included are a
+  - `doc` This holds the documentation of the system.  Included are a
           user reference and notes on the design and implementation.
           We currently include the documentation source is not shipped
           in the distribution, because the toolchain to build the docs
           is somewhat involved.
 
-  - *modules* This is the source for the compiler and various other
+  - `modules` This is the source for the compiler and various other
               modules, in RScheme.  Most of the subdirectories hold
               the code for some particular module.
 
-  - *handc* This is miscellaneous handwritten C code, mostly runtime
+  - `handc` This is miscellaneous handwritten C code, mostly runtime
             support code such as the GC and the low-level parts of the
-            thread system.  This source gets copied into *src/* by the
+            thread system.  This source gets copied into `src/` by the
             top-level build process.
 
-  - *compiler* This contains the "cross" compiler, which is written in
+  - `compiler` This contains the "cross" compiler, which is written in
 	       the language implemented by RScheme 0.6, but compiles
 	       code for 0.7.  (this is also the off-line module
 	       module, rsc, because it works in 0.7 too)
 
-  - *test* This directory holds regression test files
+  - `test` This directory holds regression test files
 
-  - *src* This is the C code generated automatically from RScheme
+  - `src` This is the C code generated automatically from RScheme
           code.  The subdirectories correspond to the subdirectories
-          of *modules/*, and hold the C code generated from the
+          of `modules/`, and hold the C code generated from the
           RScheme code in those directories, plus copies of the
-          subdirectories of *handc/*.
+          subdirectories of `handc/`.
 
-  - *bytcodes* This contains the definitions of the bytecode
+  - `bytcodes` This contains the definitions of the bytecode
 	       operations and hooks for the bytecode compiler to make
 	       use of the low-level type system.
 
-  - *packages* This contains the standard, but optional, packages,
+  - `packages` This contains the standard, but optional, packages,
 	       such as the persistent store (rstore) and posix
 	       interface package (syscalls).
 
@@ -217,47 +218,50 @@ portably and with good performance.
 
 In more detail, our goals are
 
-  1. To build a useful language that has all of the basic features that
-     any good modern programming language should have, and which provides
-     decent performance without being a big complicated monster.  To
-     be useful, it should be extremely portable.  Nobody should have to
-     worry that the vendor will go out of business and the software won't
-     be ported to new platforms.  Hence, we compile to C.  As long as there
-     are C compilers on new platforms, it should be very easy to port
-     RScheme and get good performance.  We don't expect C to die in the
-     next few decades---it's the FORTRAN of the next 30 years.
+  1. To build a useful language that has all of the basic features
+     that any good modern programming language should have, and which
+     provides decent performance without being a big complicated
+     monster.  To be useful, it should be extremely portable.  Nobody
+     should have to worry that the vendor will go out of business and
+     the software won't be ported to new platforms.  Hence, we compile
+     to C.  As long as there are C compilers on new platforms, it
+     should be very easy to port RScheme and get good performance.  We
+     don't expect C to die in the next few decades -- it's the FORTRAN
+     of the next 30 years.
 
-     Compiling to C has its drawbacks.  C was not designed to be a compiler
-     intermediate representation for other languages, so it is not the
-     optimal backend.  On the other hand, we have found novel strategies
-     for mapping RScheme onto C with surprisingly little degradation of
-     performance.  (We don't just use C as a portable assembler, as some
-     people do.  For example, in many cases, nested RScheme expressions
-     can be compiled to nested C expressions, and the C compiler will do
-     a good job of register allocation and instruction scheduling.)
+     Compiling to C has its drawbacks.  C was not designed to be a
+     compiler intermediate representation for other languages, so it
+     is not the optimal backend.  On the other hand, we have found
+     novel strategies for mapping RScheme onto C with surprisingly
+     little degradation of performance.  (We don't just use C as a
+     portable assembler, as some people do.  For example, in many
+     cases, nested RScheme expressions can be compiled to nested C
+     expressions, and the C compiler will do a good job of register
+     allocation and instruction scheduling.)
 
-     GNU C provides several handy extensions, such as the ability to use
-     hardware registers to hold important global variables.  RScheme
-     will take advantage of these features if the configure process
-     recognizes an opportunity.
+     GNU C provides several handy extensions, such as the ability to
+     use hardware registers to hold important global variables.
+     RScheme will take advantage of these features if the configure
+     process recognizes an opportunity.
 
-  2. To build a useful framework for research and development in programming
-     language design and implementation.  RScheme was originally motivated
-     by our frustration with existing language implementations, which are
-     mostly very limited and very inefficient---or big, hairy, and nonnportable
-     monsters.  Typically, implementors of interesting new languages write
-     whole new compilers for them, because none of the existing compilers
-     are flexible enough and understandable enough to make it worth reusing
-     other people's code.  As a result, there are a whole lot of mediocre
-     to bad langauge implementations out there, and that's a shame.  People
-     keep using languages like C and C++ because they know there will be
-     decent compilers for them everywhere.
+  2. To build a useful framework for research and development in
+     programming language design and implementation.  RScheme was
+     originally motivated by our frustration with existing language
+     implementations, which are mostly very limited and very
+     inefficient -- or big, hairy, and nonnportable monsters.
+     Typically, implementors of interesting new languages write whole
+     new compilers for them, because none of the existing compilers
+     are flexible enough and understandable enough to make it worth
+     reusing other people's code.  As a result, there are a whole lot
+     of mediocre to bad langauge implementations out there, and that's
+     a shame.  People keep using languages like C and C++ because they
+     know there will be decent compilers for them everywhere.
 
-     We want to leverage C's momentum, and allow better languages to be easily
-     implemented with reliably good performance on essentially all common
-     platforms.
+     We want to leverage C's momentum, and allow better languages to
+     be easily implemented with reliably good performance on
+     essentially all common platforms.
 
 
-> -- Donovan Kolbly                     RScheme Development Group
->                                       d.kolbly@rscheme.org
->                                       http://www.rscheme.org/~donovan/
+    -- Donovan Kolbly                     RScheme Development Group
+                                          d.kolbly@rscheme.org
+                                          http://www.rscheme.org/~donovan/
