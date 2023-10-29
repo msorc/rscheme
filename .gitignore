@@ -2,17 +2,22 @@
 *.o
 .handc.list
 
+handc/autom4te.cache
+
 src
 
 stage0/Makefile
-stage0/install
 stage0/autom4te.cache/
-stage0/bci/bci.o
-stage0/bci/bcinterp.o
 stage0/config.h
 stage0/config.log
 stage0/config.status
 stage0/configure
+
+stage0/install/bin
+stage0/install/include
+stage0/install/lib
+stage0/install/resource/buildenv
+stage0/install/resource/system.img
 
 stage0/gc/
 stage0/gcadapt/
