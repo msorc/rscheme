@@ -1,0 +1,1109 @@
+DESIGN OF THE RSCHEME COMPILER
+
+Paul R. Wilson and Donovan Kolbly
+
+
+The RScheme compiler is designed to be relatively straightforward
+but relatively complete.  It is intended to be easy enough to understand
+that it can be modified for a variety of purposes, but complete enough
+to generate reasonably good code and serve as an illustration of basic
+issues in compiling dynamic languages like Scheme and Dylan.  These
+features, combined with reasonable documentation, should make it a good
+system for teaching and experimenting with techniques in programming
+language design and implementation.
+
+Parts of the design are intended to allow experimentation with particular
+implementation strategies we find interesting, but mostly the design has
+been guided by an attempt to make things simple, "right" and "clean", as
+long as that didn't sacrifice portability and performance.  (Obviously,
+this is a juggling act that involves the exercise of great taste and
+exquisite judgement, and it's faintly possible that someone might disagree
+with some of our design decisions.)  One of our design principles has
+been to attempt to do the 20% of the work that gets 80% of the performance
+benefit, and to try not to slide down the slippery slope into a very
+complex compiler design.
+
+One of the eventual goals of RScheme is to be a vehicle for implementing
+multiple languages.  Its syntactic extension mechanism is integrated
+into the compiler in a principled way, and we intend to extend this
+mechanism to turn the RScheme compiler into a highly programmable "open"
+compiler.  The front-end of the compiler will be reprogrammable according
+to a relatively simple and clear protocol, exploiting a simple model
+of the front end of the compiler.  (If you're familiar with the notion
+of metaobject protocols, you can view this as a similar notion, but
+allowing the programmer to control things like scope and typing, rather
+than just things like inheritance and dispatching.  The goal is to let
+programmers extend or change the language in a principled way, or to
+reimplement parts of the language and perform a variety of high-level
+optimizations without changing the guts of the compiler.)  Given this
+mechanism, it is also trivial to implement a facility for defining inline
+procedures, because most of the work is just a simple special case of
+the work done for syntax extension.
+
+(Our lexically-scoped syntactic extension mechanism can achieve the
+functionality of Scheme's "hygeinic macros", but it does it by a very
+different mechanism, integrated with the normal scoping mechanisms
+of a conventional Scheme compiler.  We believe that this is the "right"
+way to do it, since most of the work done by conventional hygeinic
+macroexpansion is replication of the work done by the normal scoping
+mechanisms in the compiler.  In principle, our system should require
+less redundant code than a conventional macroexpansion prepass, and
+provide a more powerful framework for compiler extensibility.  It can
+be viewed as an extension of the "syntactic closures" concept of 
+Bawden and Rees, which we believe was a fundamentally superior approach
+to the earlier "hygeinic macroexpansion" work by Kohlbecker et al. and
+later work by Clinger and Rees.) 
+
+The compiler has two back ends:  one that generates C code which can
+be compiled by a C compiler to get machine language, and one that
+generates CLOSURE-THREADED code.  Closure-threading is just a means
+of constructing executable procedures by creating closures of existing
+code;  it avoids the need to actually generate machine code, because
+it just ``glues together'' existing code by creating closures in
+properly structured environments.
+
+Compiling to C is attractive for two main reasons:
+
+   * it is extremely portable.  We generate "nearly" machine-independent
+     C, using typedefs and #define's to allow us to hide differences
+     between C compilers.  (For example, we define our own type "int32"
+     that represents a 32-bit integer, which may be mapped onto an
+     int or a long int, whichever is 32 bits for that C compiler.)
+     
+   * it allows us to exploit the C compiler's optimizations to some
+     degree, especially register allocation and instruction scheduling.
+     We can benefit from the C register allocator by compiling nested
+     Scheme expressions to nested C expressions in many common
+     circumstances.  The temporary values will then be handled by the
+     C compiler, and allocated to machine registers in most cases.
+
+There are also two disadvantages of compiling to C, however:
+
+   * it's not the ideal intermediate language for compling languages like
+     Scheme, because of the mismatch between the semantics of the two
+     languages, and
+
+   * there is no portable, lighweight mechanism for compiling C code and
+     linking the result into a running system.  This is a problem in
+     an interactive system, especially one that is intended to be
+     extremely portable.
+     
+The first problem is the price we pay for having a relatively simple,
+highly portable compiler.  It would be significantly more work to use a
+conventional back end and retarget it for different platforms, even given
+modern semi-automatic back end generators.  We settle for getting decent
+performance, rather than striving to maximum performance.
+
+The second problem can be solved reasonably well by having two back ends,
+one that generates machine code via C, and one that compiles to some
+interpreted or threaded representation.
+
+Threaded code is easy to generate without dynamic linking of machine code,
+so it's suitable for quick interactive response.  This is valuable in
+a system like ours, where expressions typed by the user at the interaction
+prompt (in the "read-eval-print" loop) are actually compiled and then
+executed rather than interpreted.
+
+(RScheme appears to the casual user to be interpreted, but it's not---the
+"eval" of the read eval print loop compiles expressions and executes the
+resulting code, rather than interpreting it.  This is common in modern
+interactive systems.  In RScheme, interactively-typed code is compiled
+to threaded code, and it takes some extra doing to compile to C and link
+that in.)
+
+We chose closure-threaded code as a representation just because it's very
+easy to implement the back end.  In the future, we intend to replace
+the closure-threaded back end with one that generates something like
+bytecodes, which will be interpreted by a more conventional virtual
+machine interpreter.  This representation is intended to be very compact
+and not terribly slow.  In normal use, programmers will compile the
+performance-critical parts of their applications to machine code via C
+for maximum speed, and the other parts of their code to this interpreted
+representation to save space.
+
+
+STARTING RSCHEME
+
+From the point of view of the operating system, RScheme is just an
+executable program, linked together by combining object files written
+in C and C++ and compiled with an appropriate compiler.  Some of these
+object files (containing things like the garbage collector and some
+low-level I/O code) are handwritten C or C++.  Others are C files
+generated by using the RScheme compiler to generate C and a C compiler
+to generate object code.
+
+Scheme procedures contain more than executable code, however, and a
+running Scheme system must have environments and other data structures
+in order to function.  (From the point of view of the executable machine
+code, these are just data.)  The RScheme binary therefore takes as input
+a file which contains the data structures the running system will need.
+This is called a HEAP IMAGE, that is, a "snapshot" of the heap of a
+running Scheme system that has been saved to a file.  The RScheme
+binary reads this information from the file and reconstructs the data
+structures on the heap.  Once this is done, it can execute one of
+those procedures (specified when the image was saved to a file) as
+the "startup" procedure.  It takes the startup closure's environment
+and template values and puts them in appropriate registers, then
+extracts the appropriate code pointer from the template, and jumps
+to that code.  From that moment on, it is executing Scheme.  For a
+normal image used for interactive programming, the startup procedure
+will do some initializations, and then call the read-eval-print loop
+procedure.  You can also save an image that executes some other procedure
+at startup time.  For example, if you've finished a whole application
+and are happy with it, and want RScheme to come up running that
+application, you can save an image where the startup procedure does
+the usual initializations, and then calls the "main" procedure of your
+application.
+ 
+-------------------------------------------------------------------------
+
+THE RSCHEME EXECUTION MODEL
+
+RScheme is based on an abstract machine defined by a set of registers,
+data structuring conventions, and PRIMITIVE OPERATIONS that are
+implemented as small fragments of C code.  This is not a virtual machine
+in the sense of many Lisp and Smalltalk systems, which interpret their
+primitive instructions at run time.  It is an abstract machine much
+like a high-level assembly language.
+
+In one important sense, this abstract machine is lower level than most
+virtual machines for dynamically-typed languages;  the operations are
+statically typed using a very simple type system, and the compiler in
+many cases can glue them together without type-checking code.  The compiler
+inserts type checking primitives as necessary when values are truly
+dynamically typed, but it can often omit type checking when it can be
+statically determined that the values returned by one expression are
+of the type expected by the enclosing expression.  (We will discuss
+type declarations and simple bottom-up type inference later.)
+
+In another important sense, our abstract machine is higher-level than
+a conventional virtual machine.  Our abstract machine primitives are
+expressions that can be nested, rather than just statements that are
+glued together. 
+
+The RScheme REGISTERS are implemented as C global variables.  Depending
+on what C compiler is used, some of these variables may be mapped to
+hardware registers in the underlying machine (GNU C supports this).
+
+For most of the following, we will assume that we are executing RScheme
+code that has been compiled to machine code via C.  The threaded code
+observes the same conventions, because threaded code is really just
+a bunch of closures of simple RScheme procedures.  When and if we switch
+to something like a bytecode interpreter, the calling convention will
+not change---a bytecoded procedure will be represented as a closure of
+a normal RScheme procedure, which simply interprets the bytecodes.  The
+calling convention is optimized for machine code, because we believe
+that most programs will spend most of their time in machine code rather
+than interpreting bytecodes.  (If not, they'll be slow anyway, so it
+won't matter much.)
+
+The basic register set of RScheme is pretty much the same as the one
+for the simple compiler described in Paul Wilson's notes on Scheme
+compilers (available via ftp from cs.utexas.edu in pub/garbage/schnotes).
+The main difference is in that rather than using an eval stack to hold
+intermediate values computed by nested expressions, extra registers are
+used to hold those values.  This additional set of registers is also
+used for argument passing and for register-allocating local variables
+that the compiler determines do not need to be heap-allocated.
+
+---
+
+The basic registers
+
+The basic registers are the ENVIRONMENT register, the CONTINUATION
+register, and REG0, which serves the function of the VALUE register in
+the notes on basic compiler design.  REG0 is actually part of the
+auxiliary register file, to be discussed later, but its role is essentially
+the equivalent of a VALUE register.)  Conceptually, the program counter
+is another basic register, but we use the underlying machine's
+program counter for this;  our strategy for compiling to C makes this
+simple.
+
+The environment, continuation, and value registers all hold tagged Scheme
+values.  (They never hold raw integers or raw pointers.)
+
+The ENVIRONMENT register holds a pointer to the current heap-allocated
+lexical environment.  (If the compiler does its job well, many environments
+won't be allocated on the heap, but this register will point to the chain
+of environments representing variable bindings that couldn't be register
+allocated.)  
+
+The CONTINUATION register holds a pointer to the chain of partial
+continuations (of suspended callers) of the currently executing procedure.
+
+The REG0 (the value register) is primarily used for returning values from
+procedure calls, but it also has a special role in procedure calling.
+
+There are a few other registers, notably the ARG_COUNT register.  At a
+procedure call, the arg_count register is set by a caller to signify the
+number of arguments being passed.  On entry to the procedure, the callee
+checks to see if it received the right number of arguments.  (If the
+procedure can take extra arguments, it pushes those into an argument
+list.)  The arg-count register always holds a raw integer, so there
+is no need for the garbage collector to know about it.
+
+---
+
+The auxiliary register file
+
+The auxiliary register file is the set of other registers, which can
+be used for argument passing, holding temporary values of intermediate
+expressions, and for register-allocating local variables that do not
+need to be heap-allocated.
+
+The auxiliary register file is conceptually an unbounded array of
+registers, and registers are used starting at one end and moving
+toward the other.  At any given point in the execution of a program,
+the registers in use are a contiguous range starting at register 0.
+Typically, only the first few registers are used, and the ones nearest
+0 are most heavily used.  This allows us to allocate the first few
+registers in hardware registers (if the underlying C compiler supports
+that) and get a large benefit from a few registers.
+
+The fact that we use a contiguous, zero-based range of registers makes
+the interface between compiled code and the garbage collector simple.
+When garbage collection occurs, it is only necessary for the GC to
+know how many registers are in use, and it can trivially determine
+which ones those are.  This lets it find the root pointers for garbage
+collection easily.  (This constraint is also exploited for thread
+switching---it is easy to find the registers that are in use so that
+they can be saved.)
+
+Auxiliary Register usage
+
+Register usage in RScheme is currently fairly simple, and we want to
+keep it that way if possible.  We only intend to make it more complex
+if there are major performance benefits, and we don't intend for it
+ever to be very complex.
+
+All auxiliary registers hold tagged Scheme values.  This simplifies
+garbage-collection and thread-switching code, and we think that it
+can provide reasonably good performance given a careful selection
+of basic object representations.
+
+
+Argument Passing
+
+Arguments are passed in registers, and any reasonable number (up to
+several hundred) of arguments can be passed there.  At the moment
+of a procedure call, the only values in the auxiliary register file
+are the arguments to the call.  Any other register-allocated values
+will be saved, as necessary, in a partial continuation before the
+call.  (This is very much analogous to the calling convention described
+in Paul Wilson's notes on Scheme compilation, with the main difference
+being that instead of saving values from an eval stack into a partial
+continuation, they are saved from registers.)  For a tail call, no
+values need to be saved.  For a non-tail call, a continuation is
+saved before computing the argument values for the call.
+
+(Actually, at this writing (11/94) the register allocator is even more
+conservative---it heap-allocates any variable in whose scope any
+out-of-line procedure call occurs.  This should be changed to only
+heap-allocation of bindings in whose scope a NON-TAIL call occurs.)
+
+In the general case, the arguments to a procedure must be copied
+from the argument passing registers into a heap-allocated environment
+when the procedure is entered, so that closures can capture that
+environment and keep it live indefinitely.  For procedures that create
+no closures, this is not necessary, and the argument variables can be
+left in the registers where they were passed.  We expect the latter 
+to be a very common case, as roughly half of all calls are to small
+procedures at the leaves of the call graph.
+
+After entering the procedure, then, the arguments will be in the
+first few registers of the auxiliary register file, or they will
+have been copied to the heap and no auxiliary registers will be in
+use.  Whichever is true, the remaining registers can be allocated
+consecutively to hold temporary values or local variable bindings.
+
+The auxiliary register file behaves in much the same way as the
+eval stack in the simple example compiler (in Paul Wilson's compiler
+notes).  As mentioned above, the auxiliary file contains ONLY values
+for the currently-executing procedure, and any values needed by the
+caller will already have been saved in the continuation chain.
+Despite this stack-like pattern of usage (within a procedure), the
+compiler can statically resolve which register is used for which
+temporary or local variable, and there is no need to use a stack
+pointer at run time.  If the registers are mapped to hardware
+registers by the C compiler, accesses to them are extremely fast.
+
+Local Variables
+
+In the general case, local variables bindings (including argument
+bindings) are allocated on the heap, in conventional environment 
+frames.  An environment frame contains a scope link, pointing to the
+lexically-enclosing environment frame.
+
+In favorable cases, the compiler can determine that variable bindings
+don't really need to be allocated on the heap; it can allocate them
+in registers, much like temporary values.
+
+We currently use a simple rule for this.  For each binding contour,
+we construct a compile-time binding environment frame, and if we
+allocate any of those variables on the heap, we allocate all of them
+on the heap.  
+
+------------------------------------------------------------------------
+
+SUPPORTING GC, THREADS, and INTERRUPTS
+
+To support garbage collection, it must be possible for the collector
+to find the ROOT SET of pointers from which it traces to find all
+reachable data.  (If this is not clear, see Paul Wilson's survey on
+garbage collection, available via anonymous ftp from cs.utexas.edu as 
+pub/garbage/gcsurvey.ps.)  If variables were allocated in a stack, we
+would need to be able to find all of the pointer variables in the stack
+so that we could trace outward from them.  Our use of registers and
+a heap-allocated continuation chain means that we only need to start
+at the registers, and trace outward from there.  The tracer will be
+able to find the first partial continuation by starting at the
+continuation register, and trace the continuation chain like any
+normal data structure.  From there it will find all of the saved
+temporary values, and pointers to saved binding environments.  Then
+it can continue tracing, to find all of the values of variables and
+follow those outward until all live data are traced.
+
+(For the moment, when we talk about finding the registers that
+are in use, we are talking about the abstract machine registers.  The
+C compiler may also compile our code so that it use other registers,
+and we assume for the moment that we can ignore those.  Later we will
+explain how certain restrictions on our code generator do in fact
+allow us to ignore the registers allocated by the C compiler.)
+
+The collector must also be able to scan from the other registers,
+including the auxiliary registers holding temporaries.  At any
+point where GC occurs, it must be able to determine how many
+registers are in use, and decode their representations.  This is
+why we ensure that the values in these registers are always in
+a tagged format, so that the collector can tell whether they are
+immediate values or pointers that must be traced.
+
+There are two basic strategies for supporting GC, which we call
+"GC anytime" and "safe points".  We use safe points, but we will
+describe the GC-anytime strategy and explain why we do NOT use it.
+
+GC-anytime
+
+The GC-anytime strategy ensures that at any arbitrary machine instruction,
+the running program can be stopped and the GC can recognize all registers
+that are in use.  This requires that the compiler keep enough information
+around that at any instruction boundary, it is known which registers have
+been allocated;  this complicates the interface between the GC and compiled
+code, especially when compiling to C.  (More on that later.)
+
+An alternative is to use so-called "conservative" garbage collection
+(more properly called "conservative pointer-finding";  in such a
+system, the GC looks at all registers that MIGHT be in use, and
+treats anything that MIGHT be a pointer as a pointer.  This has
+two drawbacks:
+
+  * It's not safe because the collector might mistake an integer or other
+    nonpointer value for a pointer, and retain data that are in fact
+    garbage.  In practice this is not usually a big problem, but in
+    some cases very large amounts of data may be mistakenly retained
+    and memory will be prematurely exhausted.
+    
+  * It's not safe in the presence of copying garbage collection or
+    pointer swizzling (a technique used for transparently manipulating
+    addresses when faulting data in from a large persistent store).
+    These techniques may change addresses used as pointers when the
+    objects they point to are moved.  Here conservative pointer-finding
+    is likely to fail, because an integer or other nonpointer value
+    may be updated to reflect that its (apparent) referent has moved.
+    Naturally, this makes no sense if the value is not a pointer, and
+    programs will fail disastrously.
+    
+
+Safe Points
+
+We have chosen the "safe points" strategy, which is simple and reliable.
+Rather than ensuring that it's safe to GC at any point in a program's
+execution, we ensure that GC can only happen at certain safe points.
+For this to work, there must be a bound on the amount of allocation
+that can occur between safe points, so that a safe point can always
+be reached before memory is completely exhausted.  We keep some memory
+in reserve, so that if memory is "exhausted" (excluding this reserve
+memory), we can set a flag and continue to operate until the next safe
+point, cutting into this reserved space.  At each safe point, we check
+the flag to see if memory is exhausted;  if so, we garbage collect,
+restore our reserve space, and reset the flag before continuing
+execution.
+
+To a first approximation, our strategy for ensuring that safe points
+occur frequently enough is to make every procedure call and backward
+branch a safe point.  A program cannot run indefinitely without
+calling another procedure or branching backward---the longest path
+of execution between safe points is the longest forward path through
+a single procedure.  If a program sits in a loop, for example, at
+the end of the loop it will reach a safe point before branching backward
+to begin the next iteration.  (If a loop is coded as tail recursion, the
+tail calls that iterate the loop will also be safe points because they
+are procedure calls.)
+
+(In the current runtime system (as of 11/94), we actually have a safe point
+at every monotone boundary, which has certain advantages and disadvantages.
+This may change in the future.)
+
+Supporting Threads
+
+Supporting preemptive threads requires two things:
+
+  * making sure that that every thread yields control frequently enough
+    that it can't "lock out" other threads for too long, and
+    
+  * making sure that the GC still functions in the presence of suspended
+    threads.
+    
+In the RScheme system, support for GC safe points and support for
+preemption are combined into a single mechanism.  Safe points are also
+potential thread preeemption points.  In effect, the compiler turns
+preemptive multitasking into cooperative multitasking, by emitting
+extra instructions at safe points so that a thread will voluntarily
+yield control if its time slice has expired.
+
+Actually suspending a thread is easy, since we've already implemented
+support for first-class continuations.  The code for thread switching
+begins by saving a continuation, which encapsulates the state of the
+thread.  This can be saved in a thread-control block used by the
+scheduler.  After the thread has been suspened, another thread is chosen,
+and it is resumed by calling the escape procedure that represents its
+saved state. 
+
+In order for it to be possible to garbage collect in the presence of
+threads, it must be possible for the collector to decode the thread
+control blocks of all suspended threads, and trace outward from their
+saved state.  We therefore ensure that threads are only suspended at
+safe points, so that if GC occurs, all threads are in a safely
+traceable state.  We need only trace the scheduler's list of suspended
+threads (itself a normal, traceable Scheme data structure), and it
+follows that we will reach all live data.
+
+Interrupts
+
+Interrupts are much like thread switches, in that the currently executing
+thread must be suspended and control dispatched elsewhere---by calling
+the interrupt handler.  As with thread switches, we must ensure that this
+only happens at safe points.
+
+For actual hardware interrupts, this isn't really possible, because the
+hardware dispatches to the interrupt handler without the Scheme system
+having a say in the matter.  To get around this problem, we write
+low-level interrupt handlers in C that are dispatched in this way, and
+use that to implement a higher-level notion of Scheme interrupts.
+
+Generally, when a hardware interrupt occurs, a C routine is invoked to
+deal with the most urgent issue---noting what's going on.  This C routine
+then sets the flag for the corresponding Scheme-level interrupt, and the
+combined flag checked at each safe point.  At the next safe point, the
+fact that this flag is set, and a C routine is invoked to see why.  It
+will find out that the interrupt-pending flag is set, and dispatch
+to the appropriate Scheme interrupt handler.  (For example, at a timer
+interrupt, all that happens is the C interrupt handler records the
+fact that a timer expired, and sets flags so that a Scheme interrupt
+will occur.  The Scheme-level interrupt handler can then do all of
+the interesting processing.
+
+
+The cost of safe points
+
+In principle, safe points probably slow a system down significantly.
+For a very fast system that compiles to machine code using a custom
+back-end, we would expect safe points to cost 5-10% in execution
+time (at a guess), due to frequent checking overhead:  at each
+procedure call or backward branch, a flag must be checked and a
+conditional branch (not taken, in the usual case) executed.  (This
+overhead can be kept fairly low, even for small inner loops, by
+unrolling the loop a couple of times to eliminate most of the backward
+branches.  For a high-performance system, such loop unrolling is
+desirable anyway, to enhance conventional optimizations.)
+
+For a system like RScheme, which is not likely to ever be that fast,
+the overhead is much smaller.  If RScheme is a factor of two or so
+slower than an all-out high-performance system, the overhead will
+only be a few percent.  We consider this well worth it, because it
+preserves the ability to use copying collection and to layer RScheme
+atop persistent object stores.
+
+
+------------------------------------------------------------------------
+
+STRATEGIES FOR COMPILING TO C
+
+Compiling Scheme to C poses several special problems, because C compilers
+do not support garbage collection, and because C's stack discipline does
+not correspond to Scheme's continuations.
+
+When compiling a conventional language (such as Pascal or C++) to C, it
+is fairly straghtforward to map the source language's procedures onto C
+procedures, and the source language's variables onto C variables.
+
+In the general case, Scheme variables cannot be mapped to C variables,
+because they must have indefinite extent to support closures.  We
+therefore must implement our own binding environments in terms of
+low-level C datatypes.
+
+It would also be awkward to use C's stack, for two reasons:
+
+   * continuation saving would require copying C's stack, which may be
+     expensive, and
+     
+   * C does not support stack-scanning to find local variables.
+   
+These problems might be surmountable if we do not expect continuations
+to be heavily used (so that it would be acceptable for them to be slow)
+and if we used conservative garbage collection.
+
+Instead, we have chosen to implement our own register set and a
+conventional continuation chain.  In the general case, we use C pretty
+much as a portable assembler.  (In certain important special cases,
+however, we will take advantage of features of C to let us generate
+good code.)  We implement our own procedure-calling convention in terms
+of our registers and continuation chain;  this convention is very similar
+to those of high-performance compilers for Scheme and ML.
+
+Representing Code Addresses
+
+At a procedure call, we will take a Scheme closure pointer, and extract
+the parts of the closure, and put them in our basic registers.  The
+environment pointer is just a pointer to an environment frame, which
+we put in the environment register so that the procedure will see
+the right variables when we start executing its code.  Similarly, the
+template pointer is a pointer to a vector of information saved by
+the compiler for the procedure's use;  we extract that from the closure
+and put it into the template register.  We then extract the pointer
+to the actual code from the template, and start executing that.
+
+In RScheme, the usual representation of the code pointer is a pointer
+to a C procedure.  To "branch" to that code and start executing the
+procedure, we simply execute a C procedure call.
+
+The C code generated for a Scheme procedure call is thus a few
+dereferences to accomplish the "setup" of the Scheme environment,
+and a call to the C procedure that implements the code.
+
+It's not really quite that simple, though, because a Scheme procedure
+can't generally be represented as a single C procedure.  For example,
+if the called procedure itself does a call, it must have a code
+pointer to use as a return address, i.e., the address of the point
+in the procedure to return to.  This must be saved in a continuation
+before a (non-tail) procedure call.  There is no way in (portable)
+C to take the address of that return point within the corresponding
+C procedure.
+
+We therefore break Scheme procedures up into multiple parts, each
+represented by a C procedure.  Each return point in the Scheme procedure
+is represented as C function pointer, and "returning" into a Scheme
+procedure is implemented as a call to the procedure that represents
+the next part of the Scheme procedure.
+
+We refer to the resulting sections of a Scheme procedure as "monotones",
+because they represent the forward-only execution of code between
+safe points.  They only execute in the forward direction.  (Given the
+description so far, this is not strictly necessary, because backward
+branches don't require segmenting the Scheme procedure in this way.
+As we will explain later, it is convenient to do so.)
+
+This has two drawbacks: 
+
+   * What should be a simple branch to executable code is implemented
+     as a C function call, which is more expensive both in instructions
+     executed and in code size.  (A simple C procedure call that
+     passes no arguments is only a few instructions, but that's more
+     than one instruction, and we do this frequently.)
+     
+   * C procedures do TOO MUCH.  In particular, calling a C procedure
+     saves a return address on the C stack, because C doesn't let
+     you specify that these are tail calls and don't need to save
+     their callers' state.
+     
+This latter point is particularly annoying, because if we implement
+our Scheme naively, we will keep performing C calls without performing
+C returns, and the return addresses will pile up until the stack
+segment becomes huge and we exhaust memory (or swap space) and crash.
+
+We therefore need an extra little trick to pop a return address off
+of the stack at each call.  (This basic trick was invented by Guy Steele
+at MIT back in the 70's, and recently refined and used in a C back end
+for Standard ML of New Jersey by Tarditi et al. at CMU.)
+
+The basic trick to accomplish this is to have a single C procedure
+which acts sort of like an interpretive loop, and calls one monotone
+at a time.  The monotone executes AND RETURNS, and it is this single
+looping procedure that actually calls the next monotone.  In this way,
+we ensure that the C stack just oscillates up and down between two
+levels.  When a C procedure representing a Scheme monotone ends with
+a (Scheme) procedure call, it performs the setup part of procedure
+call sequence (extracting the environment and template pointers and
+putting them in the environment and template registers).  It then
+extracts the code pointer from the template and returns that value to
+its caller, the quasi-interpretive loop.  The loop procedure accepts
+this return value, and does the (C) call the pointed-to C procedure.
+
+Avoiding the Overhead of the Quasi-Interpretive Loop
+
+There are ways of avoiding the quasi-interpretive loop, with different
+degrees of unportability.
+
+One technique (used by the Glasgow Haskell compiler) is to use the C
+compiler to generate assembly code, and then postprocess the assembly
+output to strip out the unneeded (C) call and return instruction sequences,
+and replace them with labels.  The result can then be assembled, using
+the labels to denote the addresses of the actual code sequences for
+the monotones.  This works very well and avoids both runtime overhead
+and code bloat.  (For SPARCs, it also has the advantage that you
+can strip out the pesky register-window stuff and just use one register
+window as though it were a normal set of general-purpose register set.)
+Unfortunately, this requires customizing the postprocessor for each
+platform, to recognize the calling and return sequences.
+
+Another solution, which we have an experimental implementation of for
+RScheme, is to take advantage of the GNU C compiler's support for taking 
+the addresses of labels.  GNU C is an extended version of C, where the
+address of a label can be taken as a kind of pointer value, and jumped
+to directly without performing a normal calling sequence.  We simply
+insert labels and expressions that take the addresses of labels, and use
+those to implement the saving of return addresses in continuations, etc.
+
+This avoids the stacking of return addresses, and the need for the
+quasi-interpretive loop.  Unfortunately, it does not eliminate all
+of the code bloat, because the call and return sequences are still there,
+even if they're bypassed at run time.  (We expect to be able to get rid
+of most of this bloat by compiling many monotones as a single procedure,
+but there's still some bloat because we need some executable code that
+extracts the labels from those large procedures.  We may be able to
+eliminate most of the remaining bloat by being careful how we link C
+code, but we're yet sure.)  Also, it doesn't seem to work on some
+platforms (notably AIX), and we're not sure yet exactly why not.
+
+(Note: the above discussion is just a little bit out of date.  See
+the RScheme README file for a slightly different discussion.  As it
+turns out, the GNU C compiler's support for label addresses is weaker
+than we thought.  The README file proposes a workable way around the
+problem, and also alternatives that are possible if the GNU project
+enhances their compiler in certain likely ways.)
+
+---
+
+Abstract Machine Instructions and C expressions
+
+The abstract machine that we compile for is a language of nested
+expressions.  These expressions include things like fetching the
+value of a variable, performing an integer multiply, performing a
+floating-point multiply, pushing the current state onto the continuation
+chain as a partial continuation, and so on.
+
+We believe that it is very advantageous to have an abstract instruction
+set of TYPED, nested expressions.  The compiler can recognize that
+the return value type of an expression is of the preferred type for
+the expression that it's nested in, and omit type checking.  In many
+cases, nested expressions that do not involve procedure calls can
+be compiled directly to nested expressions in C, with no runtime
+overhead for decoding or dispatching.
+
+The type system used by the back end of the compiler is concerned
+with low-level concrete types, such as raw integers, tagged integers,
+raw floats, tagged floats, pointers to objects that consist of tagged
+slots, pointers to objects that consist of untagged bits, etc.  It
+is not the same as the type system that is seen by the casual programmer,
+and it is supposed to be fairly independent of what language is actually
+being implemented.  (E.g., you should be able to put a fairly efficient
+implementation of Pascal on top of our compiler backend, with only minor
+changes.)  It is not complicated---just complicated enough that simple
+operations can be mapped onto simple C expressions that map onto simple
+(sequences of) machine instructions.  (Actually, it's also independent
+of the fact that the primitives are implemented in C---you should be
+able to plug in a more conventional low-level code generator.)
+
+In attempting to compile to nested C expressions, the compiler uses
+a simple rule.  Any value that clearly only exists during the
+execution of a monotone can be represented in the most efficient
+format.  Values that must be saved across monotones must be represented
+as full-fledged, tagged Scheme values.
+
+Naturally, this simple, bottom-up analysis and representation selection
+is very sensitive to whether types are declared and whether procedures
+are inlined.  Expressions can only be compiled to nested C expressions
+within a single monotone, so it pays to inline small procedures and
+to declare the types of variables referenced within those expressions.
+For example, relatively complex floating-point expressions in the body
+of a loop may be compiled into code very similar to floating-point
+code written directly in C, but calls to small, non-inlined procedures
+will incur both procedure calling and type-checking overhead.
+
+Literals
+
+Our compiler is smart enough to recognize that many simple literals
+can be represented as C literals that will be encoded in the
+instruction stream, rather than fetched from the procedure template
+at run time.  These include immediate values such as small integers,
+booleans, the empty list, and ASCII characters.   The binary
+representations of these values are encoded so that the upper bits
+are generally zeroes, increasing the chances that a C compiler will
+be able to represent them as an operand to a single instruction,
+which requires no extra instructions or memory fetches.  (The C
+#defines which yield them are in terms of small integers, rather
+than full 32-bit values, and it is expected that the C compiler
+will sign-extend these small values rather than representing them
+as full 32-bit constants.) 
+
+Type Inference
+
+Our compiler performs very simple bottom-up type inference, and the
+back end uses a simple static type system for concrete types.  Each
+expression has a type;  for literals, the type is obvious to the
+compiler, and for local variables, type declarations can make it
+trivial.  (Currently, if you don't declare the type of a variable,
+our compiler won't infer it;  once variables' types are inferred,
+however, it can often infer the types of expressions operating on
+those variables.  It therefore pays to declare the types of procedure
+arguments and let variables.)
+
+Compound abstract machine expressions also may have several variants
+for different types of arguments, so for example there is an integer
++ primitive and a floating-point + primitive.  If the argument types
+match one of these definitions, the compiler chooses the appropriate
+opcode for that variant, and the return type is known.
+
+A simple framework for coercions of primitive types is also defined.
+If the compiler can see that the arguments to + are an integer and
+a float, for example it can compile that as a float + operation with
+a coercion of the integer argument to a float.
+
+For integers and floats, the compiler is biased towards efficient
+representations---in its bottom-up processing of the expressions,
+it attempts to keep the representations close to the native machine
+as possible.  Floating point values are preferentially kept in
+a raw IEEE double representation, not a boxed value on the heap
+referred to via a pointer.  Integer values are preferentially kept
+in a tagged format, because the low-tagging representation does
+not cost much for common integer operations.
+
+To do this analysis, the compiler makes a distinction between simple
+nested expressions within a monotone, and values that can "escape"
+from a monotone due to a procedure call or backward branch.
+
+------------------------------------------------------------------------
+
+OBJECT REPRESENTATIONS
+
+RScheme data values are represented as two-bit, low-tagged 32-bit
+quantities.  This means that RScheme values are generally 32 bits,
+where the low two bits is a primary tag that says what basic kind of
+value it is, and the upper 30 bits holds either the actual value, or
+a pointer to a heap-allocated object that is the actual value.
+
+Every heap-allocated object, whether of a built-in type or a user-defined
+type has a header that says exactly what kind of object it is.  This
+header includes a CLASS POINTER, which is a pointer to a class object
+that represents that kind of object.
+
+Plain, standard Scheme objects such as vectors and strings have class
+pointers---unlike some systems, there is NO DISTINCTION between objects
+that are plain Scheme values and objects that are instances of classes.
+
+In fact EVERY value in RScheme has a class, and there's a primitive in the
+abstract instruction set that will give you back a pointer to the class
+of an object, even if the object is a built-in immediate value.  For
+immediate values, this primitive looks in a special table to find
+the class pointer, preserving the illusion that every object is allocated
+on the heap and has a header with a class pointer.
+
+Notice that this small feature is important, in that it will allow us
+to implement a good object system with a metaobject protocol efficiently
+with little or no compiler cooperation.
+
+---
+
+IMMEDIATE VALUES are the values that are represented directly within
+the upper 30 bits of a word.  Two different primary tags are used
+for immediate values---one just for short integers, and another for
+all other kinds of immediate values.  Integers have a primary tag of
+00, which is convenient because it turns out not to get in the way
+of most arithmetic operations. (You don't actually have to strip out
+the tag to do integer addition for example, because the 00 tags of
+the operands will add together and form a 00 tag in the low bits of
+the result.)
+
+Other (non-integer) immediate values have a secondary tag saying what
+kind of noninteger immediate value they are---e.g., boolean, empty
+list, ASCII character.  This secondary tag is in the next-to-lowest
+range of a few bits, just above the primary tag.  The remaining bits
+are available to store the actual value, e.g., the ASCII code representing
+a character.
+
+ 
+------------------------------------------------------------------------
+
+BASIC STRUCTURE OF THE COMPILER
+
+The RScheme compiler is structured as two passes.  This does not include
+reading (which we view as prior to actual compilation) or generating
+machine code from C code (which we view as an assembly-like postpass);
+it refers only to the operation of the compiler proper.
+
+Each pass does some work on the way down the expression graph, and different
+work on the way up, so there are effectively four distinct phases.  (The
+phases are conceptually distinct, but are interleaved at run time because
+the compiler may return back up one part of the expression graph before
+calling itself recursively to go down the next part.)
+
+The first phase of the compiler strongly resembles the operation of the
+example compiler in Paul Wilson's notes on Scheme compilation, and
+generates intermediate code called icode as output.  icode is structured
+essentially as nested expressions, decorated with compile-time
+environments that make scopes explicit, and the results of some simple
+analyses.  Icode is essentially a more horizontal (explicit)
+representation of the source program, and does not make much commitment
+to low-level implementation.  For example, local variables are represented
+as fields of compile-time environment frames that represent the binding
+contours of the source program, without committing to whether the runtime
+bindings of those variables will be allocated in registers or in heap
+allocated binding environment frames.  (Similarly, the representations
+of a reference to a variable within an expression does not commit to
+whether the reference will be implemented as a reference to a register
+or as an indirection through the environment register and environment
+frame chain.)
+
+The second phase of the compiler (called code-gen in the implementation)
+traverses the icode graph, making decisions about register- and heap-
+allocation of variables, etc. on the way down, and generating abstract
+machine expression code on the way up.
+
+------------------------------------------------------------------------
+
+A NEW INTERPRETED BACK END?
+
+While our current threaded-code back-end is simple, and handy for
+interactive use, it would probably be better to provide a more compact
+interpreted representation;  then programmers could compile performance-
+critical code to C, and the rest of their code would be compact.
+
+Our system is structured so that the primitives are organized into
+a simple framework, i.e., encoded in a Scheme data structure that
+indexes the operations by their names and types, and holds the C
+fragments that implement the primitives as Scheme strings.  This is
+a convenient framework for semi-automatically generating the C code
+for an interpreter.
+
+Several alternatives exist for interpreted representations.  Many
+Scheme systems (and most Smalltalk systems) compile to "bytecodes",
+which is a virtual machine instruction format where every opcode is
+a byte, and some opcodes take additional bytes as arguments.
+
+Another alternative is threaded code, where each "opcode" is an
+address of a piece of machine code to executed.  "Direct" threaded code
+uses actual machine addresses for this, so that the code for a
+complex operation consists of a sequence of addresses of the
+sub-operations that implement it.  The suboperations may be sequences
+of machine code instructions, or other "threaded" code sequences.
+
+A variant of threaded code which we find very appealing is "indirect"
+threaded code.  In indirect-threaded code, a "pointer" to the code
+for an operation is really an index into a table of pointers to the
+actual code sequences.  This is slightly slower than direct-threaded
+code, but can be much more compact.  If there are no more than 64
+thousand pieces of code, then these code "pointers" can be 16-bit offsets
+rather than 32-bit pointers.
+
+It might seem that these 16-bit pointers would be less compact than
+bytecodes, but that's not necessarily so.  As Chuck Duff (implementor
+of the Actor object-oriented programming system, not to be confused
+with Carl Hewitt's Actor languages) has pointed out, the ability to
+have more than 256 instructions makes it possible to encode more in
+each instruction, so that most instructions do not need to take operands.
+The elimination of operands can save in space and especially in execution
+time.
+
+This is especially true if most of the operands are generated automatically
+from definitions of abstract operations.  We could write a simple program
+to generate individual opcodes and C code for all 64 combinations of lexical
+addresses with frame numbers from 0 to 7 and slot numbers from 1 to 8.
+(This isn't really the best example... but that's the general idea.)
+
+On the other hand, fast decoding may not matter as much in a system like
+ours, where we normally expect the most time-critical code to be compiled
+to machine code (via C).  In our initial implementation of an interpreter,
+we'll probably go with something like a conventional bytecoded instruction
+set, where many of the bytecodes (1-byte opcodes) take operands that are
+one or two bytes.  We can then CISCify this instruction set by constructing
+new opcodes with fewer or smaller arguments, which encode common cases of
+the more general opcodes.  As we'll discuss later, we can also construct
+opcodes that are equivalent to combinations of opcodes.
+
+---
+
+ADDING (AN) INTERPRETIVE VIRTUAL MACHINE(S) TO THE CURRENT SYSTEM
+
+In adding interpreted code to our compiler-oriented system, we want to avoid 
+adding any overhead at procedure call time for native-code procedures.  We
+don't want to have to check to see if something is native-coded or compiled
+before calling it.  (We're probably assuming that we spend most of our time
+in native-coded procedures, so we'd rather keep native-code calling fast
+even if it costs a little bit for interpreted code.)
+
+It's straigtforward to add interpreted representations to the basic system,
+allowing interpreted procedures to call native-code procedures and vice
+versa.  All that's necessary is that we make sure that interpreted procedures
+look like compiled ones, with a template and a code pointer that points to 
+native code (e.g., a C function pointer in the usual setup).  For interpreted
+procedures, we simply make sure that the code pointer always points to a
+special routine that invokes the interpreter, and that the pointer to the
+actual interpreted code is stored in the template.  Thus calling an
+interpreted procedure IS calling a native code procedure, whose action is
+to interpret some bytecodes (or whatever interpreted representation we're
+using) stashed in the template as a literal.
+
+Calling out of (and returning into) interpreted code can work the same way.
+Whenever an interpreted routine saves a continuation, the return address
+is a similar little routine that will resume interpreting the interpreted
+representation.  To save the interpretive return address (i.e., the point
+within the interpreted code to resume at), an integer is saved in the
+continuation as well, as though it were just some normal intermediate value
+that needed to be saved.
+
+The normal calling and returning conventions work fine for this.  From
+the "normal" point of view, every interpreted procedure looks pretty
+similar, and the differences between them are just in the literal data.
+
+Notice that this works even if different interpreted routines use different
+interpreters.  There's no problem combining routines that use different
+interpreters---they're just procedures whose code pointers point to
+different interpretive routines.
+
+---
+
+A FANCIER VIRTUAL MACHINE STRATEGY:
+Tree Code, Automatic macro-opcode construction,
+and automatic generation of peephole optimizers
+to exploit macro opcodes.
+
+(NOTE: the following is medium- to long-term stuff, not expected to be
+acted on soon.  We need a simple interpreted backend that's fairly
+compact before we worry too much about this stuff.  On the other hand,
+the design of the short-term backend might be inspired by the long-term
+ideas.)
+
+A more interesting possibility is the generation of opcodes (semi-)
+automatically based on profiling data, where a macro-opcode would represent
+a combination of several basic opcodes, based on observed usage patterns
+over a bunch of runs of a bunch of different programs.  For a simple
+bytecode-like instruction set, this might just be based on observed
+patterns of arguments to bytecodes, and observed sequences of bytecodes.
+In essence, a process of profiling, analysis, and synthesis will generate
+a CISCy opcode set from observed patterns of usage of a RISCy opcode set.
+If the instruction set is properly designed, this could work very well,
+not just by reducing interpretive overhead, but also by allowing the
+resulting macro-opcodes to be optimized.
+
+If the operations are nestable expressions (as in our current system)
+rather than sequential statements, they can be aggregated into
+macro-operations by nesting the C fragments and compiling the result.
+This may give the C compiler enough to chew on that it can do useful
+optimizations, eliminating common subexpressions and the like.  Better
+yet, the nesting can be done by our basic compiler, which already knows
+how to do some simple bottom-up analyses based on its type system. 
+
+---
+
+If we want to support runtime profiling and/or dynamic compilation,
+It seems likely that a good representation for this would be some kind
+of packed-tree representation.  Rather than being sequential statements,
+the opcodes would be nestable expressions much like the abstract machine's
+primitive instructions, but the tree representing the code for a procedure
+would be packed into the code object for that procedure.  (I think m-code
+for Halstead's MultiLisp was something like this, only dynamically typed
+rather than typed like our abstract machine language.) 
+
+The idea here is that the runtime representation would preserve most of
+the properties of our abstract machine language, supporting later
+optimization.   This only really matters, though, if we want to do dynamic
+compilation to machine code, or do RUNTIME profiling of interpretive
+execution, and use the results to guide the construction of macro-opcodes
+that increase speed.  (That may be important for situations where we
+really need a portable virtual machine across platforms, and can't rely
+on generating machine code for safety or footprint reasons.)  
+
+For more conventional situations, where the interpreted representation is
+to save space more than time, we can do static analysis of generated 
+abstract machine code, and extend the opcode set based on what will save
+code size, rather than execution time.  (Typically it will save both.)  This
+makes the actual runtime interpreted format less critical to the analysis
+stuff; the analysis would happen on the abstract machine code, not the 
+interpretive virtual machine code.
+
+16-bit instructions (tree nodes) might be right for a runtime-analysis
+system--pretty easy and fast to decode, pretty compact, and able to represent
+offsets within relatively large procedures without resorting to fetching
+another operand.
+
+A variable-length instruction format might be better for a static analysis
+system, if the overall strategy works so well that you seldom execute long
+instructions, or when you do they do enough work that the decoding overhead
+isn't a big deal.   (Or if you assume that the time-critical code will be
+compiled to native code, and the stuff that's getting compiled to interpreted
+code is worth making a little slower to make it smaller.)  A conventional
+bytecode instruction set would work fine, with the most important byte codes 
+often being one byte, and others taking two-byte operands.
+
+Initially, the system would be built with a roughly one-to-one
+correspondence between the abstract machine primitives and the primitives
+of the interpretive virtual machine.  (This prototype would be slow.)
+Then, on the basis of profiling and pattern recognition, we'd recognize
+common patterns of nested expressions, and automatically construct
+equivalent macro-opcodes by glomming together the equivalent primitives
+using our compiler and optimizing them.  This would be a mostly bottom-up
+iterative process, first constructing macro-opcodes that glom together
+an expression and its common argument expressions, then glomming those
+together, and so on.  (Notice that it's no problem to construct macro
+opcodes where one argument is of a commonly-occurring type, but the other
+is free, like currying a function.)
+
+Linking Macro-Opcodes Dynamically
+
+The above scheme, taken straightforwardly, makes sense for developing
+a single version of the system---after sufficient profiling, a set
+of macro-opcodes is settled on and "hardened" into the system.  Then
+people use the system and nobody can add new opcodes without becoming
+incompatible with everybody else.  This is okay, in that it provides
+a clean way to develop a good compiler and virtual machine, but it's
+not as good as if we could modularize the instruction set, and allow
+different compilers to be used and have different macro-opcode sets.
+Let's call the opcode set that's built into the standard virtual machine
+the "base opcode set" and some application- or language-specific opcode
+set an "auxiliary opcode set".
+
+One way of allowing different macro-opcode sets is to provide a simple
+segmented space of opcodes, and to use a level of indirection for the
+decoding of opcodes that aren't common across all systems.
+
+Suppose that an auxiliary opcode set is compiled into a vector of code
+fragments, so that to execute an opcode you only need to index into this
+object and jump to that address.  To allow a procedure to use that opcode
+set, you just make sure that it has a pointer to that code vector in
+its template.  Calling an auxiliary opcode just means indirecting through
+the template and code vector pointer, indexing into the code vector,
+and jumping.  These steps must be accomplished by some opcode(s) in
+the base set, and we want it to be fairly fast.
+
+Suppose we say that any procedure can use at most a few (say, two)
+auxiliary opcode sets in addition to the base set, and that if it uses
+them the pointers to the code vectors will be at particular slots in the
+template.  Suppose also that we restrict the number of opcodes in an
+auxiliary set to some reasonable number like 100.  Then we just need
+a bunch of base set opcodes that indirectly execute opcodes in the
+auxiliary sets---in this case, we need 200 opcodes, so that we have
+100 that will execute the 100 opcodes in the first auxiliary set, and
+100 that will execute the 100 opcodes in the second auxiliary set.
+For most applications, this is overkill---they only need a handful of
+extra opcodes, and the functions within a particular application may
+only need to use one auxiliary set.  
+
+(QUESTION: what's the space cost of a pointer in each template?  If
+procedures are small, that could negate some of the space benefit of the
+enlarged instruction set.  I suspect that's okay, because most of the
+space benefit will come from the automatically-enlarged base opcode
+set, and the dynamic linking of specialized opcode sets will be mostly
+for speed.  If you don't need the speed, don't do it.)
+
+-------------------------------------------------------------------------
+
