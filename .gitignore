@@ -4,7 +4,7 @@
 
 handc/autom4te.cache
 
-src
+/src/
 
 stage0/Makefile
 stage0/autom4te.cache/
@@ -28,4 +28,5 @@ stage0/rdln/
 stage0/rshell/rs
 stage0/runtime/dynlink.c
 stage0/runtime/osglue.c
+stage0/src
 stage0/system.img
