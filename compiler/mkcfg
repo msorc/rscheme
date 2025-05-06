@@ -10,7 +10,7 @@ dist_path=`cd $dist_path ; pwd`
 
 b="${build_id}"
 if test -z "$b"
-then b="Dev Build, `date +'%Y-%m-%d %H:%M'`"
+then b="Dev-Build, `date +'%Y-%m-%d %H:%M'`"
 fi
 
 # strip off date part and leading "v"
