@@ -19,6 +19,7 @@
 #define PLATFORM_ARCH_M68K    0
 #define PLATFORM_ARCH_ALPHA   0
 #define PLATFORM_ARCH_S390    0
+#define PLATFORM_ARCH_X86_64  0
 #define PLATFORM_ARCH_UNKNOWN 0
  
 /* The GNU C compiler lets you compute "goto" targets. Parts of the

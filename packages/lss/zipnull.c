@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <rscheme/pkgs/lss/lsszips.h>
 
 /* this is just a "gather" copy */

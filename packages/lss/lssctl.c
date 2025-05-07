@@ -17,6 +17,8 @@ static zip_algorithm *use_zip = NULL;
 int verbose = 1;
 static char *override_ancestor = NULL;
 
+void low_level_dump(const char *file);
+
 static void plsserror( const char *file )
 {
   if ((errno >= LSSERR_MIN) && (errno <= LSSERR_MAX))
